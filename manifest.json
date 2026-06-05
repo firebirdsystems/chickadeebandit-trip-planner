@@ -1,0 +1,32 @@
+{
+  "id": "trip-planner",
+  "name": "Trip Planner",
+  "version": "1.0.0",
+  "description": "Collaborative family vacation planning — itinerary by day, per-person packing lists, shared notes, and booking confirmations in one place.",
+  "entrypoint": "index.html",
+  "runtime": "static",
+  "category": "general",
+  "tags": ["travel", "planning", "itinerary", "vacation"],
+  "data_access": {
+    "reads": ["family.members"],
+    "writes": ["family.documents", "app.grocery.pending_items"]
+  },
+  "exports": ["calendar_events"],
+  "permissions": {
+    "default_audience": "everyone",
+    "requires_approval": false
+  },
+  "storage": "db",
+  "nav": { "label": "Trips" },
+  "icon": "✈️",
+  "resource_limits": {
+    "max_db_bytes": 52428800,
+    "max_files_bytes": 524288000,
+    "max_docs_bytes": 524288000
+  },
+  "ai_access": {
+    "allowed": true,
+    "mode": "read",
+    "db_exports": ["upcoming_trips", "all_trips"]
+  }
+}

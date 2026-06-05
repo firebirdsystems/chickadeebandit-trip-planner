@@ -1,0 +1,1246 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <base href="/run/trip-planner/" />
+  <title>Trip Planner</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: var(--hub-font, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif);
+      font-size: var(--hub-font-size, 15px);
+      background: var(--hub-bg, #f9fafb);
+      color: var(--hub-text, #111827);
+      min-height: 100vh;
+    }
+    .page { max-width: 680px; margin: 0 auto; padding: 20px 16px 48px; }
+
+    /* --- Header --- */
+    .header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 20px; }
+    h1 { font-size: 1.4rem; font-weight: 700; }
+    h2 { font-size: 1.25rem; font-weight: 700; }
+    h3 { font-size: 1.05rem; font-weight: 600; margin-bottom: 16px; }
+
+    /* --- Buttons --- */
+    .btn-primary {
+      background: var(--hub-primary, #111827);
+      color: var(--hub-primary-fg, #fff);
+      border: none;
+      border-radius: var(--hub-radius, 8px);
+      padding: 9px 18px;
+      font-size: 0.875rem;
+      font-weight: 600;
+      cursor: pointer;
+    }
+    .btn-primary:hover { background: var(--hub-primary-hover, #374151); }
+    .btn-primary:disabled { opacity: 0.6; cursor: not-allowed; }
+    .btn-ghost {
+      background: transparent;
+      color: var(--hub-text, #111827);
+      border: 1px solid var(--hub-border, #e5e7eb);
+      border-radius: var(--hub-radius, 8px);
+      padding: 8px 14px;
+      font-size: 0.875rem;
+      cursor: pointer;
+    }
+    .btn-ghost:hover { background: var(--hub-surface, #f3f4f6); }
+    .btn-sm { padding: 5px 10px; font-size: 0.8rem; }
+    .btn-back { background: none; border: none; color: var(--hub-text-muted, #6b7280); font-size: 0.875rem; cursor: pointer; padding: 4px 0; }
+    .btn-back:hover { color: var(--hub-text, #111827); }
+    .btn-add {
+      background: none;
+      border: 1px dashed var(--hub-border, #d1d5db);
+      border-radius: 8px;
+      color: var(--hub-text-muted, #6b7280);
+      width: 100%;
+      padding: 8px;
+      font-size: 0.83rem;
+      cursor: pointer;
+      margin-top: 6px;
+      text-align: left;
+    }
+    .btn-add:hover { border-color: var(--hub-primary, #111827); color: var(--hub-text, #111827); }
+    .btn-icon { background: none; border: none; cursor: pointer; padding: 4px 6px; font-size: 0.85rem; opacity: 0.45; }
+    .btn-icon:hover { opacity: 1; }
+    .btn-icon-sm { background: none; border: none; cursor: pointer; padding: 0 4px; color: var(--hub-text-muted, #9ca3af); font-size: 1.1rem; line-height: 1; }
+    .btn-icon-sm:hover { color: var(--hub-text, #111827); }
+    .btn-danger { background: #dc2626; color: #fff; border: none; border-radius: var(--hub-radius, 8px); padding: 8px 16px; font-size: 0.875rem; cursor: pointer; }
+    .btn-danger:hover { background: #b91c1c; }
+
+    /* --- Cards --- */
+    .card {
+      background: var(--hub-surface, #fff);
+      border: 1px solid var(--hub-border, #e5e7eb);
+      border-radius: var(--hub-radius, 12px);
+      padding: 16px;
+      margin-bottom: 12px;
+    }
+
+    /* --- Section labels --- */
+    .section-label {
+      font-size: 0.75rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      color: var(--hub-text-muted, #6b7280);
+      margin-bottom: 8px;
+    }
+
+    /* --- Trip list cards --- */
+    .trip-card { cursor: pointer; transition: border-color 0.1s; }
+    .trip-card:hover { border-color: var(--hub-primary, #374151); }
+    .trip-card-header { display: flex; justify-content: space-between; align-items: flex-start; gap: 8px; margin-bottom: 6px; }
+    .trip-title { font-weight: 600; font-size: 0.95rem; }
+    .trip-dest { color: var(--hub-text-muted, #6b7280); font-size: 0.83rem; margin-top: 2px; }
+    .trip-meta { font-size: 0.83rem; color: var(--hub-text-muted, #6b7280); display: flex; gap: 6px; align-items: center; flex-wrap: wrap; }
+    .dot { opacity: 0.35; }
+
+    /* --- Badges --- */
+    .badge { display: inline-block; padding: 3px 9px; border-radius: 20px; font-size: 0.72rem; font-weight: 600; white-space: nowrap; flex-shrink: 0; }
+    .badge-going { font-size: 0.75rem; color: var(--hub-text-muted, #6b7280); margin-left: auto; }
+
+    /* --- Trip detail header --- */
+    .back-bar { display: flex; align-items: center; justify-content: space-between; margin-bottom: 14px; }
+    .trip-header { margin-bottom: 16px; }
+    .trip-header h2 { margin-bottom: 4px; }
+    .trip-header-meta { display: flex; align-items: center; gap: 8px; margin-top: 8px; flex-wrap: wrap; }
+
+    /* --- Tabs --- */
+    .tabs { display: flex; border-bottom: 1px solid var(--hub-border, #e5e7eb); margin-bottom: 18px; gap: 2px; }
+    .tab {
+      background: none;
+      border: none;
+      border-bottom: 2px solid transparent;
+      padding: 8px 14px;
+      font-size: 0.875rem;
+      font-weight: 500;
+      cursor: pointer;
+      color: var(--hub-text-muted, #6b7280);
+      margin-bottom: -1px;
+    }
+    .tab:hover { color: var(--hub-text, #111827); }
+    .tab.active { color: var(--hub-text, #111827); border-bottom-color: var(--hub-primary, #111827); font-weight: 600; }
+
+    /* --- Itinerary --- */
+    .day-section { margin-bottom: 22px; }
+    .day-label {
+      font-size: 0.78rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      color: var(--hub-text-muted, #6b7280);
+      margin-bottom: 8px;
+      padding-bottom: 7px;
+      border-bottom: 1px solid var(--hub-border, #f0f0f0);
+    }
+    .itin-item {
+      display: flex;
+      align-items: flex-start;
+      gap: 10px;
+      padding: 10px 12px;
+      border-radius: 8px;
+      margin-bottom: 5px;
+      background: var(--hub-surface, #fff);
+      border: 1px solid var(--hub-border, #e5e7eb);
+    }
+    .item-icon { font-size: 1.1rem; flex-shrink: 0; margin-top: 2px; }
+    .item-body { flex: 1; min-width: 0; }
+    .item-title { font-weight: 500; font-size: 0.9rem; }
+    .item-time { font-size: 0.78rem; color: var(--hub-text-muted, #6b7280); margin-top: 1px; font-variant-numeric: tabular-nums; }
+    .item-desc { font-size: 0.83rem; color: var(--hub-text-muted, #6b7280); margin-top: 2px; }
+    .item-conf { font-size: 0.78rem; color: var(--hub-text-muted, #6b7280); margin-top: 2px; font-family: monospace; }
+    .item-link a { font-size: 0.8rem; color: var(--hub-primary, #1d4ed8); text-decoration: none; margin-top: 2px; display: inline-block; }
+    .item-link a:hover { text-decoration: underline; }
+    .item-actions { display: flex; gap: 2px; flex-shrink: 0; }
+
+    /* --- Packing --- */
+    .packing { display: flex; flex-direction: column; gap: 14px; }
+    .pack-section {
+      background: var(--hub-surface, #fff);
+      border: 1px solid var(--hub-border, #e5e7eb);
+      border-radius: var(--hub-radius, 12px);
+      padding: 14px;
+    }
+    .pack-section-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-weight: 600;
+      font-size: 0.875rem;
+      margin-bottom: 10px;
+    }
+    .progress-label { font-size: 0.78rem; font-weight: 500; color: var(--hub-text-muted, #6b7280); }
+    .pack-item {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 6px 0;
+      border-bottom: 1px solid var(--hub-border, #f3f4f6);
+    }
+    .pack-item:last-of-type { border-bottom: none; }
+    .pack-item.is-checked .pack-label { text-decoration: line-through; opacity: 0.45; }
+    .checkbox {
+      width: 20px;
+      height: 20px;
+      border: 2px solid var(--hub-border, #d1d5db);
+      border-radius: 4px;
+      background: none;
+      cursor: pointer;
+      font-size: 0.8rem;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+      padding: 0;
+    }
+    .checkbox.is-checked { background: var(--hub-primary, #111827); border-color: var(--hub-primary, #111827); color: var(--hub-primary-fg, #fff); }
+    .checkbox.readonly { cursor: default; opacity: 0.5; }
+    .pack-label { flex: 1; font-size: 0.875rem; }
+    .checked-by { font-size: 0.73rem; color: var(--hub-text-muted, #9ca3af); }
+
+    /* --- Details tab --- */
+    .details { display: flex; flex-direction: column; gap: 12px; }
+    .card-label { font-size: 0.75rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.06em; color: var(--hub-text-muted, #6b7280); margin-bottom: 10px; }
+    .notes-text { font-size: 0.875rem; line-height: 1.65; white-space: pre-wrap; }
+    .member-row { display: flex; align-items: center; gap: 10px; padding: 7px 0; border-bottom: 1px solid var(--hub-border, #f3f4f6); }
+    .member-row:last-child { border-bottom: none; }
+    .avatar { width: 28px; height: 28px; border-radius: 50%; display: flex; align-items: center; justify-content: center; color: #fff; font-size: 0.72rem; font-weight: 700; flex-shrink: 0; }
+    .member-name { flex: 1; font-size: 0.875rem; }
+    .member-toggle { margin-left: auto; }
+    .member-toggle input[type="checkbox"] { width: 16px; height: 16px; cursor: pointer; accent-color: var(--hub-primary, #111827); }
+    .doc-row { display: flex; align-items: center; justify-content: space-between; padding: 8px 0; border-bottom: 1px solid var(--hub-border, #f3f4f6); font-size: 0.875rem; gap: 8px; }
+    .doc-row:last-of-type { border-bottom: none; }
+    .doc-name { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .doc-actions { display: flex; gap: 6px; flex-shrink: 0; }
+    .upload-row { padding-top: 10px; }
+    .danger-zone { padding-top: 4px; }
+    .muted { color: var(--hub-text-muted, #6b7280); font-size: 0.83rem; }
+
+    /* --- Empty state --- */
+    .empty { text-align: center; padding: 60px 16px; }
+    .empty-icon { font-size: 3rem; margin-bottom: 16px; }
+    .empty p { color: var(--hub-text-muted, #6b7280); margin-bottom: 20px; font-size: 0.9rem; }
+
+    /* --- Modal --- */
+    .modal-backdrop {
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.45);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 1000;
+      padding: 16px;
+    }
+    .modal {
+      background: var(--hub-surface, #fff);
+      border-radius: var(--hub-radius, 12px);
+      padding: 24px;
+      width: 100%;
+      max-width: 480px;
+      max-height: 90vh;
+      overflow-y: auto;
+      box-shadow: 0 20px 60px rgba(0,0,0,0.18);
+    }
+    .modal-sub { font-size: 0.83rem; color: var(--hub-text-muted, #6b7280); margin-bottom: 14px; margin-top: -8px; }
+    .modal-actions { display: flex; justify-content: flex-end; gap: 8px; margin-top: 20px; padding-top: 4px; }
+
+    /* --- Forms --- */
+    .field { margin-bottom: 14px; }
+    .field label { display: block; font-size: 0.83rem; font-weight: 500; margin-bottom: 5px; }
+    .field-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+    input[type="text"], input[type="url"], input[type="date"],
+    input[type="time"], select, textarea {
+      width: 100%;
+      padding: 8px 10px;
+      border: 1px solid var(--hub-border, #d1d5db);
+      border-radius: 6px;
+      font-size: 0.875rem;
+      font-family: inherit;
+      background: var(--hub-bg, #fff);
+      color: var(--hub-text, #111827);
+    }
+    input:focus, select:focus, textarea:focus {
+      outline: 2px solid var(--hub-primary, #2563eb);
+      outline-offset: 1px;
+      border-color: transparent;
+    }
+    textarea { resize: vertical; }
+    .check-field label { display: flex; align-items: center; gap: 8px; font-size: 0.875rem; font-weight: 400; cursor: pointer; }
+    .check-field input[type="checkbox"] { width: 15px; height: 15px; accent-color: var(--hub-primary, #111827); }
+  </style>
+</head>
+<body>
+  <div id="app"></div>
+
+  <script type="module">
+    import {
+      esc, isAdult, memberColor, initial,
+      hubConfirm, createFilesHelper, crossWrite
+    } from "/hub-sdk.js";
+    import {
+      CAT_ICONS, STATUS_LABELS,
+      nightCount, dateRange, dayLabel, formatDateRange,
+      packingProgress, sortItinerary,
+    } from "./logic.js";
+
+    // ── Runtime globals ──────────────────────────────────────────────────────
+    const CONTEXT = window.__CONTEXT_URL  ?? "";
+    const DB      = window.__DB_URL       ?? "";
+    const STORE   = window.__STORE_URL    ?? "";
+    const DOCS    = window.__DOCS_URL     ?? "";
+    const FILES   = window.__FILES_URL    ?? "";
+    const ME      = window.__CURRENT_MEMBER ?? null;
+    const APP_ID  = window.__APP_ID       ?? "trip-planner";
+
+    const filesHelper = createFilesHelper(FILES);
+
+    // ── State ────────────────────────────────────────────────────────────────
+    let members        = [];
+    let memberMap      = new Map();
+    let trips          = [];
+    let view           = "list";  // "list" | "trip"
+    let currentTrip    = null;
+    let tripMembers    = [];      // member IDs on current trip
+    let itineraryItems = [];
+    let packingItems   = [];
+    let tripDocs       = [];
+    let currentTab     = "itinerary";
+    let modalEl        = null;
+
+    // ── DB helper ────────────────────────────────────────────────────────────
+    async function db(sql, params = []) {
+      if (!DB) return { rows: [] };
+      const res = await fetch(DB, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ sql, params }),
+      });
+      return res.json();
+    }
+
+    // ── Load functions ───────────────────────────────────────────────────────
+    async function loadMembers() {
+      if (!CONTEXT) {
+        members = [
+          { id: "m1", name: "Alex",   role: "adult" },
+          { id: "m2", name: "Jordan", role: "adult" },
+          { id: "m3", name: "Riley",  role: "child" },
+        ];
+        memberMap = new Map(members.map(m => [m.id, m]));
+        return;
+      }
+      try {
+        const res = await fetch(`${CONTEXT}?keys=family.members`);
+        members = ((await res.json())["family.members"]) ?? [];
+      } catch { members = []; }
+      memberMap = new Map(members.map(m => [m.id, m]));
+    }
+
+    async function loadTrips() {
+      const { rows } = await db(
+        `SELECT id, title, destination, start_date, end_date, status, notes, created_by, created_at
+         FROM trips ORDER BY start_date DESC`
+      );
+      if (rows.length > 0 || DB) {
+        trips = rows;
+        return;
+      }
+      // Demo fallback
+      trips = [
+        { id: "demo-1", title: "Paris Summer", destination: "Paris, France",
+          start_date: "2026-07-10", end_date: "2026-07-24", status: "confirmed",
+          notes: "Book museum tickets in advance.", created_by: "m1", created_at: new Date().toISOString() },
+        { id: "demo-2", title: "Lake House Weekend", destination: "Lake Tahoe, CA",
+          start_date: "2026-08-14", end_date: "2026-08-16", status: "planning",
+          notes: "", created_by: "m1", created_at: new Date().toISOString() },
+      ];
+    }
+
+    async function loadTripDetail(tripId) {
+      const [{ rows: mRows }, { rows: iRows }, { rows: pRows }] = await Promise.all([
+        db(`SELECT member_id FROM trip_members WHERE trip_id = ?`, [tripId]),
+        db(`SELECT * FROM itinerary_items WHERE trip_id = ? ORDER BY item_date NULLS LAST, sort_order, created_at`, [tripId]),
+        db(`SELECT * FROM packing_items WHERE trip_id = ? ORDER BY member_id NULLS FIRST, created_at`, [tripId]),
+      ]);
+
+      tripMembers    = mRows.map(r => r.member_id);
+      itineraryItems = iRows;
+      packingItems   = pRows;
+      tripDocs       = [];
+
+      if (DOCS) {
+        try {
+          const res = await fetch(`${DOCS}?sourceId=${encodeURIComponent(tripId)}`);
+          if (res.ok) tripDocs = await res.json();
+        } catch { /* non-fatal */ }
+      }
+    }
+
+    // ── Calendar export ──────────────────────────────────────────────────────
+    async function publishTrips() {
+      if (!STORE) return;
+      const events = trips
+        .filter(t => t.status !== "cancelled")
+        .map(t => ({
+          id:           t.id,
+          title:        t.title,
+          description:  t.destination || "",
+          start:        t.start_date,
+          end:          t.end_date,
+          all_day:      true,
+          source_label: "Trip Planner",
+        }));
+      fetch(STORE, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ key: "calendar_events", value: JSON.stringify(events) }),
+      }).catch(() => {});
+    }
+
+    // ── Navigation ───────────────────────────────────────────────────────────
+    async function openTrip(trip) {
+      currentTrip = trip;
+      currentTab  = "itinerary";
+      view        = "trip";
+      await loadTripDetail(trip.id);
+      render();
+    }
+
+    function goBack() {
+      view        = "list";
+      currentTrip = null;
+      render();
+    }
+
+    // ── Helpers ──────────────────────────────────────────────────────────────
+    function statusBadge(status) {
+      const styles = {
+        planning:  "background:#dbeafe;color:#1e40af",
+        confirmed: "background:#dcfce7;color:#166534",
+        completed: "background:#f3f4f6;color:#374151",
+        cancelled: "background:#fee2e2;color:#991b1b",
+      };
+      return `<span class="badge" style="${styles[status] ?? styles.planning}">${esc(STATUS_LABELS[status] ?? status)}</span>`;
+    }
+
+
+    // ── Render ───────────────────────────────────────────────────────────────
+    function render() {
+      view === "list" ? renderList() : renderTrip();
+    }
+
+    function renderList() {
+      const canCreate = !ME || isAdult(ME);
+      const today     = new Date().toISOString().slice(0, 10);
+      const upcoming  = trips.filter(t => t.end_date >= today && t.status !== "cancelled");
+      const past      = trips.filter(t => t.end_date < today || t.status === "cancelled");
+
+      document.getElementById("app").innerHTML = `
+        <div class="page">
+          <div class="header">
+            <h1>✈️ Trips</h1>
+            ${canCreate ? `<button class="btn-primary" onclick="window._newTrip()">+ New trip</button>` : ""}
+          </div>
+
+          ${trips.length === 0 ? `
+            <div class="empty">
+              <div class="empty-icon">🗺️</div>
+              <p>No trips planned yet.</p>
+              ${canCreate ? `<button class="btn-primary" onclick="window._newTrip()">Plan a trip</button>` : ""}
+            </div>
+          ` : `
+            ${upcoming.length > 0 ? `
+              <div class="section-label">Upcoming</div>
+              ${upcoming.map(tripCard).join("")}
+            ` : ""}
+            ${past.length > 0 ? `
+              <div class="section-label" style="margin-top:20px">Past</div>
+              ${past.map(tripCard).join("")}
+            ` : ""}
+          `}
+        </div>
+      `;
+    }
+
+    function tripCard(trip) {
+      const nights = nightCount(trip.start_date, trip.end_date);
+      return `
+        <div class="card trip-card" onclick="window._openTripById('${esc(trip.id)}')">
+          <div class="trip-card-header">
+            <div>
+              <div class="trip-title">${esc(trip.title)}</div>
+              ${trip.destination ? `<div class="trip-dest">📍 ${esc(trip.destination)}</div>` : ""}
+            </div>
+            ${statusBadge(trip.status)}
+          </div>
+          <div class="trip-meta">
+            <span>${esc(formatDateRange(trip.start_date, trip.end_date))}</span>
+            <span class="dot">·</span>
+            <span>${nights} night${nights !== 1 ? "s" : ""}</span>
+          </div>
+        </div>
+      `;
+    }
+
+    function renderTrip() {
+      const t       = currentTrip;
+      const isAdmin = !ME || isAdult(ME);
+      document.getElementById("app").innerHTML = `
+        <div class="page">
+          <div class="back-bar">
+            <button class="btn-back" onclick="window._goBack()">← Trips</button>
+            ${isAdmin ? `<button class="btn-ghost btn-sm" onclick="window._editTrip()">Edit</button>` : ""}
+          </div>
+
+          <div class="trip-header">
+            <h2>${esc(t.title)}</h2>
+            ${t.destination ? `<div class="trip-dest">📍 ${esc(t.destination)}</div>` : ""}
+            <div class="trip-header-meta">
+              <span>${esc(formatDateRange(t.start_date, t.end_date))}</span>
+              <span class="dot">·</span>
+              <span>${nightCount(t.start_date, t.end_date)} nights</span>
+              <span class="dot">·</span>
+              ${statusBadge(t.status)}
+            </div>
+          </div>
+
+          <div class="tabs">
+            <button class="tab${currentTab === "itinerary" ? " active" : ""}" onclick="window._setTab('itinerary')">Itinerary</button>
+            <button class="tab${currentTab === "packing"   ? " active" : ""}" onclick="window._setTab('packing')">Packing</button>
+            <button class="tab${currentTab === "details"   ? " active" : ""}" onclick="window._setTab('details')">Details</button>
+          </div>
+
+          <div id="tab-content">
+            ${renderTab()}
+          </div>
+        </div>
+      `;
+    }
+
+    function renderTab() {
+      if (currentTab === "itinerary") return renderItinerary();
+      if (currentTab === "packing")   return renderPacking();
+      return renderDetails();
+    }
+
+    function refreshTab() {
+      const el = document.getElementById("tab-content");
+      if (el) el.innerHTML = renderTab();
+    }
+
+    // ── Itinerary tab ────────────────────────────────────────────────────────
+    function renderItinerary() {
+      const isAdmin = !ME || isAdult(ME);
+      const dates   = dateRange(currentTrip.start_date, currentTrip.end_date);
+
+      const unscheduled = itineraryItems.filter(i => !i.item_date);
+
+      const dayHtml = dates.map(date => {
+        const items = itineraryItems.filter(i => i.item_date === date);
+        return `
+          <div class="day-section">
+            <div class="day-label">${esc(dayLabel(date))}</div>
+            ${items.map(itinItemHtml).join("")}
+            ${isAdmin ? `<button class="btn-add" onclick="window._newItem('${esc(date)}')">+ Add item</button>` : ""}
+          </div>
+        `;
+      }).join("");
+
+      const unschHtml = (unscheduled.length > 0 || isAdmin) ? `
+        <div class="day-section">
+          <div class="day-label" style="opacity:0.6">Unscheduled</div>
+          ${unscheduled.map(itinItemHtml).join("")}
+          ${isAdmin ? `<button class="btn-add" onclick="window._newItem(null)">+ Add unscheduled item</button>` : ""}
+        </div>
+      ` : "";
+
+      return `<div class="itinerary">${dayHtml}${unschHtml}</div>`;
+    }
+
+    function itinItemHtml(item) {
+      const icon    = CAT_ICONS[item.category] ?? "📌";
+      const isAdmin = !ME || isAdult(ME);
+      return `
+        <div class="itin-item">
+          <span class="item-icon">${icon}</span>
+          <div class="item-body">
+            <div class="item-title">${esc(item.title)}</div>
+            ${item.time             ? `<div class="item-time">${esc(item.time)}</div>` : ""}
+            ${item.description      ? `<div class="item-desc">${esc(item.description)}</div>` : ""}
+            ${item.confirmation_code ? `<div class="item-conf">Conf: ${esc(item.confirmation_code)}</div>` : ""}
+            ${item.booking_url      ? `<div class="item-link"><a href="${esc(item.booking_url)}" target="_blank" rel="noopener noreferrer">View booking ↗</a></div>` : ""}
+          </div>
+          ${isAdmin ? `
+            <div class="item-actions">
+              <button class="btn-icon" title="Edit" onclick="window._editItem('${esc(item.id)}')">✏️</button>
+              <button class="btn-icon" title="Remove" onclick="window._deleteItem('${esc(item.id)}')">🗑️</button>
+            </div>
+          ` : ""}
+        </div>
+      `;
+    }
+
+    // ── Packing tab ──────────────────────────────────────────────────────────
+    function renderPacking() {
+      const myId    = ME?.id ?? null;
+      const isAdmin = !ME || isAdult(ME);
+
+      const myItems     = myId ? packingItems.filter(i => i.member_id === myId) : [];
+      const sharedItems = packingItems.filter(i => !i.member_id);
+      const otherTravelers = isAdmin && myId
+        ? members.filter(m => m.id !== myId && tripMembers.includes(m.id))
+        : [];
+
+      function section(title, items, memberId) {
+        const pct  = packingProgress(items);
+        const canAdd = !ME || isAdult(ME) || memberId === myId || memberId === null;
+        return `
+          <div class="pack-section">
+            <div class="pack-section-header">
+              <span>${esc(title)}</span>
+              ${pct !== null ? `<span class="progress-label">${pct}%</span>` : ""}
+            </div>
+            ${items.map(i => packItemHtml(i, myId)).join("")}
+            ${items.length === 0 ? `<p class="muted" style="padding:4px 0 6px">Nothing added yet.</p>` : ""}
+            ${canAdd ? `<button class="btn-add" onclick="window._addPacking(${memberId ? `'${esc(memberId)}'` : "null"})">+ Add item</button>` : ""}
+          </div>
+        `;
+      }
+
+      return `
+        <div class="packing">
+          ${myId ? section("My list", myItems, myId) : ""}
+          ${section("Shared list", sharedItems, null)}
+          ${otherTravelers.map(m => {
+            const items = packingItems.filter(i => i.member_id === m.id);
+            return section(`${m.name}'s list`, items, m.id);
+          }).join("")}
+        </div>
+      `;
+    }
+
+    function packItemHtml(item, myId) {
+      const canToggle = !ME || item.member_id === myId || isAdult(ME);
+      const canDelete = !ME || item.member_id === myId || isAdult(ME);
+      const checkerName = item.checked_by ? (memberMap.get(item.checked_by)?.name ?? item.checked_by) : null;
+      return `
+        <div class="pack-item${item.checked ? " is-checked" : ""}">
+          <button class="checkbox${item.checked ? " is-checked" : ""}${!canToggle ? " readonly" : ""}"
+            ${canToggle ? `onclick="window._togglePacking('${esc(item.id)}')"` : ""}
+            aria-label="${item.checked ? "Uncheck" : "Check"}"
+          >${item.checked ? "✓" : ""}</button>
+          <span class="pack-label">${esc(item.label)}</span>
+          ${checkerName && item.checked ? `<span class="checked-by">${esc(checkerName)}</span>` : ""}
+          ${canDelete ? `<button class="btn-icon-sm" title="Remove" onclick="window._deletePacking('${esc(item.id)}')">×</button>` : ""}
+        </div>
+      `;
+    }
+
+    // ── Details tab ──────────────────────────────────────────────────────────
+    function renderDetails() {
+      const t       = currentTrip;
+      const isAdmin = !ME || isAdult(ME);
+
+      const docRows = tripDocs.map(doc => `
+        <div class="doc-row">
+          <span class="doc-name">📄 ${esc(doc.title)}</span>
+          <div class="doc-actions">
+            ${doc.fileKey ? `<a class="btn-ghost btn-sm" href="${esc(filesHelper.url(doc.fileKey))}" target="_blank" rel="noopener">Download</a>` : ""}
+            ${isAdmin ? `<button class="btn-ghost btn-sm" onclick="window._deleteDoc('${esc(doc.id)}', '${esc(doc.fileKey ?? "")}')">Remove</button>` : ""}
+          </div>
+        </div>
+      `).join("");
+
+      return `
+        <div class="details">
+          ${t.notes ? `
+            <div class="card">
+              <div class="card-label">Notes</div>
+              <div class="notes-text">${esc(t.notes)}</div>
+              ${isAdmin ? `<button class="btn-ghost btn-sm" style="margin-top:10px" onclick="window._editTrip()">Edit notes</button>` : ""}
+            </div>
+          ` : isAdmin ? `
+            <div class="card" style="border-style:dashed;text-align:center">
+              <button class="btn-ghost" onclick="window._editTrip()">+ Add notes</button>
+            </div>
+          ` : ""}
+
+          <div class="card">
+            <div class="card-label">Who's coming</div>
+            ${members.map(m => `
+              <div class="member-row">
+                <div class="avatar" style="background:${esc(memberColor(m.id, members))}">${esc(initial(m.name))}</div>
+                <span class="member-name">${esc(m.name)}</span>
+                ${isAdmin
+                  ? `<label class="member-toggle" title="${tripMembers.includes(m.id) ? "Remove from trip" : "Add to trip"}">
+                       <input type="checkbox" ${tripMembers.includes(m.id) ? "checked" : ""}
+                         onchange="window._toggleMember('${esc(m.id)}', this.checked)">
+                     </label>`
+                  : tripMembers.includes(m.id) ? `<span class="badge-going">Going</span>` : ""
+                }
+              </div>
+            `).join("")}
+          </div>
+
+          ${DOCS ? `
+            <div class="card">
+              <div class="card-label">Documents</div>
+              ${docRows || `<p class="muted">No documents uploaded yet.</p>`}
+              ${isAdmin ? `
+                <div class="upload-row">
+                  <input type="file" id="doc-upload"
+                    accept=".pdf,.jpg,.jpeg,.png,.webp,.doc,.docx,.txt,.md"
+                    style="display:none"
+                    onchange="window._uploadDoc(this)">
+                  <button class="btn-ghost btn-sm" onclick="document.getElementById('doc-upload').click()">
+                    + Upload booking confirmation
+                  </button>
+                </div>
+              ` : ""}
+            </div>
+          ` : ""}
+
+          ${isAdmin ? `
+            <div class="danger-zone">
+              <button class="btn-danger" onclick="window._deleteTrip()">Delete trip</button>
+            </div>
+          ` : ""}
+        </div>
+      `;
+    }
+
+    // ── Modal helpers ─────────────────────────────────────────────────────────
+    function openModal(html) {
+      closeModal();
+      modalEl = document.createElement("div");
+      modalEl.className = "modal-backdrop";
+      modalEl.innerHTML = `<div class="modal">${html}</div>`;
+      modalEl.addEventListener("click", e => { if (e.target === modalEl) closeModal(); });
+      document.body.appendChild(modalEl);
+    }
+
+    function closeModal() { modalEl?.remove(); modalEl = null; }
+
+    // ── New / edit trip ───────────────────────────────────────────────────────
+    window._newTrip = function() {
+      openModal(`
+        <h3>New Trip</h3>
+        <div class="field">
+          <label>Title</label>
+          <input id="f-title" type="text" placeholder="Summer vacation…" maxlength="120">
+        </div>
+        <div class="field">
+          <label>Destination</label>
+          <input id="f-dest" type="text" placeholder="Paris, France" maxlength="200">
+        </div>
+        <div class="field-row">
+          <div class="field">
+            <label>Start date</label>
+            <input id="f-start" type="date">
+          </div>
+          <div class="field">
+            <label>End date</label>
+            <input id="f-end" type="date">
+          </div>
+        </div>
+        <div class="field">
+          <label>Notes (optional)</label>
+          <textarea id="f-notes" rows="3" placeholder="Ideas, links, reminders…"></textarea>
+        </div>
+        <div class="modal-actions">
+          <button class="btn-ghost" onclick="closeModal()">Cancel</button>
+          <button class="btn-primary" onclick="window._submitNewTrip()">Create trip</button>
+        </div>
+      `);
+      setTimeout(() => document.getElementById("f-title")?.focus(), 50);
+    };
+
+    window._submitNewTrip = async function() {
+      const title = document.getElementById("f-title").value.trim();
+      const dest  = document.getElementById("f-dest").value.trim();
+      const start = document.getElementById("f-start").value;
+      const end   = document.getElementById("f-end").value;
+      const notes = document.getElementById("f-notes").value.trim();
+
+      if (!title) { document.getElementById("f-title").focus(); return; }
+      if (!start || !end) { alert("Please set start and end dates."); return; }
+      if (start > end) { alert("End date must be on or after start date."); return; }
+
+      const btn = modalEl?.querySelector(".btn-primary");
+      if (btn) { btn.disabled = true; btn.textContent = "Creating…"; }
+
+      try {
+        const id  = crypto.randomUUID();
+        const now = new Date().toISOString();
+
+        await db(
+          `INSERT INTO trips (id, title, destination, start_date, end_date, status, notes, created_by, created_at)
+           VALUES (?, ?, ?, ?, ?, 'planning', ?, ?, ?)`,
+          [id, title, dest, start, end, notes, ME?.id ?? "system", now]
+        );
+
+        if (ME?.id) {
+          await db(
+            `INSERT INTO trip_members (id, trip_id, member_id, added_at) VALUES (?, ?, ?, ?)`,
+            [crypto.randomUUID(), id, ME.id, now]
+          );
+        }
+
+        const newTrip = { id, title, destination: dest, start_date: start, end_date: end,
+          status: "planning", notes, created_by: ME?.id ?? "system", created_at: now };
+        trips = [newTrip, ...trips].sort((a, b) => b.start_date.localeCompare(a.start_date));
+        closeModal();
+        publishTrips();
+
+        fetch("/api/activity", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            type: "trip.created",
+            description: `${ME?.name ?? "Someone"} planned a new trip: "${title}"`,
+            metadata: { deepLink: { appId: APP_ID, params: { tripId: id } } },
+          }),
+        }).catch(() => {});
+
+        await openTrip(newTrip);
+      } catch (e) {
+        if (btn) { btn.disabled = false; btn.textContent = "Create trip"; }
+        throw e;
+      }
+    };
+
+    window._editTrip = function() {
+      const t = currentTrip;
+      openModal(`
+        <h3>Edit Trip</h3>
+        <div class="field">
+          <label>Title</label>
+          <input id="f-title" type="text" value="${esc(t.title)}" maxlength="120">
+        </div>
+        <div class="field">
+          <label>Destination</label>
+          <input id="f-dest" type="text" value="${esc(t.destination)}" maxlength="200">
+        </div>
+        <div class="field-row">
+          <div class="field">
+            <label>Start date</label>
+            <input id="f-start" type="date" value="${esc(t.start_date)}">
+          </div>
+          <div class="field">
+            <label>End date</label>
+            <input id="f-end" type="date" value="${esc(t.end_date)}">
+          </div>
+        </div>
+        <div class="field">
+          <label>Status</label>
+          <select id="f-status">
+            ${["planning","confirmed","completed","cancelled"].map(s =>
+              `<option value="${s}"${t.status === s ? " selected" : ""}>${STATUS_LABELS[s]}</option>`
+            ).join("")}
+          </select>
+        </div>
+        <div class="field">
+          <label>Notes</label>
+          <textarea id="f-notes" rows="4">${esc(t.notes)}</textarea>
+        </div>
+        <div class="modal-actions">
+          <button class="btn-ghost" onclick="closeModal()">Cancel</button>
+          <button class="btn-primary" onclick="window._submitEditTrip()">Save</button>
+        </div>
+      `);
+    };
+
+    window._submitEditTrip = async function() {
+      const title  = document.getElementById("f-title").value.trim();
+      const dest   = document.getElementById("f-dest").value.trim();
+      const start  = document.getElementById("f-start").value;
+      const end    = document.getElementById("f-end").value;
+      const status = document.getElementById("f-status").value;
+      const notes  = document.getElementById("f-notes").value.trim();
+
+      if (!title) { document.getElementById("f-title").focus(); return; }
+      if (start > end) { alert("End date must be on or after start date."); return; }
+
+      const btn = modalEl?.querySelector(".btn-primary");
+      if (btn) { btn.disabled = true; btn.textContent = "Saving…"; }
+
+      try {
+        await db(
+          `UPDATE trips SET title=?, destination=?, start_date=?, end_date=?, status=?, notes=? WHERE id=?`,
+          [title, dest, start, end, status, notes, currentTrip.id]
+        );
+
+        Object.assign(currentTrip, { title, destination: dest, start_date: start, end_date: end, status, notes });
+        const idx = trips.findIndex(t => t.id === currentTrip.id);
+        if (idx !== -1) trips[idx] = { ...trips[idx], ...currentTrip };
+
+        closeModal();
+        publishTrips();
+        renderTrip();
+      } catch (e) {
+        if (btn) { btn.disabled = false; btn.textContent = "Save"; }
+        throw e;
+      }
+    };
+
+    // ── Itinerary CRUD ───────────────────────────────────────────────────────
+    window._newItem = function(date) {
+      openModal(`
+        <h3>Add Item</h3>
+        ${date ? `<div class="modal-sub">${esc(dayLabel(date))}</div>` : ""}
+        <div class="field">
+          <label>Title</label>
+          <input id="f-title" type="text" placeholder="Flight, hotel check-in, dinner…" maxlength="200">
+        </div>
+        <div class="field-row">
+          <div class="field">
+            <label>Category</label>
+            <select id="f-cat">
+              <option value="transport">✈️ Transport</option>
+              <option value="accommodation">🏨 Accommodation</option>
+              <option value="activity">🎭 Activity</option>
+              <option value="restaurant">🍽️ Restaurant</option>
+              <option value="other">📌 Other</option>
+            </select>
+          </div>
+          <div class="field">
+            <label>Time (optional)</label>
+            <input id="f-time" type="time">
+          </div>
+        </div>
+        <div class="field">
+          <label>Description (optional)</label>
+          <input id="f-desc" type="text" maxlength="500" placeholder="Notes, address…">
+        </div>
+        <div class="field-row">
+          <div class="field">
+            <label>Confirmation # (optional)</label>
+            <input id="f-conf" type="text" maxlength="100" placeholder="ABC123">
+          </div>
+          <div class="field">
+            <label>Booking URL (optional)</label>
+            <input id="f-url" type="url" placeholder="https://…">
+          </div>
+        </div>
+        <div class="modal-actions">
+          <button class="btn-ghost" onclick="closeModal()">Cancel</button>
+          <button class="btn-primary" onclick="window._submitNewItem(${date ? `'${esc(date)}'` : "null"})">Add item</button>
+        </div>
+      `);
+      setTimeout(() => document.getElementById("f-title")?.focus(), 50);
+    };
+
+    window._submitNewItem = async function(date) {
+      const title = document.getElementById("f-title").value.trim();
+      const cat   = document.getElementById("f-cat").value;
+      const time  = document.getElementById("f-time").value || null;
+      const desc  = document.getElementById("f-desc").value.trim();
+      const conf  = document.getElementById("f-conf").value.trim();
+      const url   = document.getElementById("f-url").value.trim();
+
+      if (!title) { document.getElementById("f-title").focus(); return; }
+
+      const btn = modalEl?.querySelector(".btn-primary");
+      if (btn) { btn.disabled = true; btn.textContent = "Adding…"; }
+
+      try {
+        const id    = crypto.randomUUID();
+        const now   = new Date().toISOString();
+        const sort  = itineraryItems.filter(i => i.item_date === date).length;
+
+        await db(
+          `INSERT INTO itinerary_items
+             (id, trip_id, item_date, sort_order, time, title, description, category, booking_url, confirmation_code, created_by, created_at)
+           VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+          [id, currentTrip.id, date, sort, time, title, desc, cat, url, conf, ME?.id ?? "system", now]
+        );
+
+        const newItem = { id, trip_id: currentTrip.id, item_date: date, sort_order: sort,
+          time, title, description: desc, category: cat, booking_url: url,
+          confirmation_code: conf, created_by: ME?.id ?? "system", created_at: now };
+        itineraryItems = sortItinerary([...itineraryItems, newItem]);
+
+        closeModal();
+        refreshTab();
+      } catch (e) {
+        if (btn) { btn.disabled = false; btn.textContent = "Add item"; }
+        throw e;
+      }
+    };
+
+    window._editItem = function(itemId) {
+      const item = itineraryItems.find(i => i.id === itemId);
+      if (!item) return;
+      openModal(`
+        <h3>Edit Item</h3>
+        <div class="field">
+          <label>Title</label>
+          <input id="f-title" type="text" value="${esc(item.title)}" maxlength="200">
+        </div>
+        <div class="field-row">
+          <div class="field">
+            <label>Category</label>
+            <select id="f-cat">
+              ${["transport","accommodation","activity","restaurant","other"].map(c =>
+                `<option value="${c}"${item.category === c ? " selected" : ""}>${CAT_ICONS[c] ?? "📌"} ${c.charAt(0).toUpperCase() + c.slice(1)}</option>`
+              ).join("")}
+            </select>
+          </div>
+          <div class="field">
+            <label>Time</label>
+            <input id="f-time" type="time" value="${esc(item.time ?? "")}">
+          </div>
+        </div>
+        <div class="field">
+          <label>Description</label>
+          <input id="f-desc" type="text" value="${esc(item.description)}" maxlength="500">
+        </div>
+        <div class="field-row">
+          <div class="field">
+            <label>Confirmation #</label>
+            <input id="f-conf" type="text" value="${esc(item.confirmation_code)}" maxlength="100">
+          </div>
+          <div class="field">
+            <label>Booking URL</label>
+            <input id="f-url" type="url" value="${esc(item.booking_url)}">
+          </div>
+        </div>
+        <div class="modal-actions">
+          <button class="btn-ghost" onclick="closeModal()">Cancel</button>
+          <button class="btn-primary" onclick="window._submitEditItem('${esc(itemId)}')">Save</button>
+        </div>
+      `);
+    };
+
+    window._submitEditItem = async function(itemId) {
+      const title = document.getElementById("f-title").value.trim();
+      const cat   = document.getElementById("f-cat").value;
+      const time  = document.getElementById("f-time").value || null;
+      const desc  = document.getElementById("f-desc").value.trim();
+      const conf  = document.getElementById("f-conf").value.trim();
+      const url   = document.getElementById("f-url").value.trim();
+
+      if (!title) { document.getElementById("f-title").focus(); return; }
+
+      const btn = modalEl?.querySelector(".btn-primary");
+      if (btn) { btn.disabled = true; btn.textContent = "Saving…"; }
+
+      try {
+        await db(
+          `UPDATE itinerary_items SET title=?, category=?, time=?, description=?, confirmation_code=?, booking_url=? WHERE id=?`,
+          [title, cat, time, desc, conf, url, itemId]
+        );
+
+        const idx = itineraryItems.findIndex(i => i.id === itemId);
+        if (idx !== -1) {
+          itineraryItems[idx] = { ...itineraryItems[idx], title, category: cat, time, description: desc, confirmation_code: conf, booking_url: url };
+        }
+        closeModal();
+        refreshTab();
+      } catch (e) {
+        if (btn) { btn.disabled = false; btn.textContent = "Save"; }
+        throw e;
+      }
+    };
+
+    window._deleteItem = async function(itemId) {
+      const ok = await hubConfirm({ message: "Remove this item?", destructive: true });
+      if (!ok) return;
+      await db(`DELETE FROM itinerary_items WHERE id=?`, [itemId]);
+      itineraryItems = itineraryItems.filter(i => i.id !== itemId);
+      refreshTab();
+    };
+
+    // ── Packing CRUD ─────────────────────────────────────────────────────────
+    window._addPacking = function(memberId) {
+      const isShared  = !memberId;
+      const isOwnList = memberId === ME?.id;
+
+      openModal(`
+        <h3>${isShared ? "Add to shared list" : isOwnList ? "Add to my list" : `Add to ${esc(memberMap.get(memberId)?.name ?? "")}'s list`}</h3>
+        <div class="field">
+          <input id="f-label" type="text" placeholder="Sunscreen, travel adapter, passport…" maxlength="200">
+        </div>
+        ${isShared ? `
+          <div class="field check-field">
+            <label><input type="checkbox" id="f-grocery"> Also add to shopping list</label>
+          </div>
+        ` : ""}
+        <div class="modal-actions">
+          <button class="btn-ghost" onclick="closeModal()">Cancel</button>
+          <button class="btn-primary" onclick="window._submitAddPacking(${memberId ? `'${esc(memberId)}'` : "null"})">Add</button>
+        </div>
+      `);
+      setTimeout(() => document.getElementById("f-label")?.focus(), 50);
+    };
+
+    window._submitAddPacking = async function(memberId) {
+      const label     = document.getElementById("f-label").value.trim();
+      const toGrocery = document.getElementById("f-grocery")?.checked ?? false;
+
+      if (!label) { document.getElementById("f-label").focus(); return; }
+
+      const btn = modalEl?.querySelector(".btn-primary");
+      if (btn) { btn.disabled = true; btn.textContent = "Adding…"; }
+
+      try {
+        const id  = crypto.randomUUID();
+        const now = new Date().toISOString();
+
+        await db(
+          `INSERT INTO packing_items (id, trip_id, member_id, label, checked, created_at)
+           VALUES (?, ?, ?, ?, 0, ?)`,
+          [id, currentTrip.id, memberId, label, now]
+        );
+
+        packingItems = [...packingItems,
+          { id, trip_id: currentTrip.id, member_id: memberId, label, checked: 0, checked_by: null, checked_at: null, created_at: now }
+        ];
+        closeModal();
+        refreshTab();
+
+        if (toGrocery) {
+          crossWrite("grocery", "pending_items", [
+            { op: "array_append", path: "items", value: { name: label, addedBy: `Trip Planner (${currentTrip.title})` } },
+          ]).catch(() => {});
+        }
+      } catch (e) {
+        if (btn) { btn.disabled = false; btn.textContent = "Add"; }
+        throw e;
+      }
+    };
+
+    window._togglePacking = async function(itemId) {
+      const item = packingItems.find(i => i.id === itemId);
+      if (!item) return;
+      const newChecked = item.checked ? 0 : 1;
+      const now        = new Date().toISOString();
+
+      await db(
+        `UPDATE packing_items SET checked=?, checked_by=?, checked_at=? WHERE id=?`,
+        [newChecked, newChecked ? (ME?.id ?? null) : null, newChecked ? now : null, itemId]
+      );
+
+      const idx = packingItems.findIndex(i => i.id === itemId);
+      if (idx !== -1) {
+        packingItems[idx] = { ...packingItems[idx], checked: newChecked,
+          checked_by: newChecked ? (ME?.id ?? null) : null,
+          checked_at: newChecked ? now : null };
+      }
+      refreshTab();
+    };
+
+    window._deletePacking = async function(itemId) {
+      await db(`DELETE FROM packing_items WHERE id=?`, [itemId]);
+      packingItems = packingItems.filter(i => i.id !== itemId);
+      refreshTab();
+    };
+
+    // ── Trip members ─────────────────────────────────────────────────────────
+    window._toggleMember = async function(memberId, adding) {
+      if (adding) {
+        await db(
+          `INSERT INTO trip_members (id, trip_id, member_id, added_at)
+           VALUES (?, ?, ?, ?)
+           ON CONFLICT (household_id, trip_id, member_id) DO NOTHING`,
+          [crypto.randomUUID(), currentTrip.id, memberId, new Date().toISOString()]
+        );
+        if (!tripMembers.includes(memberId)) tripMembers = [...tripMembers, memberId];
+      } else {
+        await db(`DELETE FROM trip_members WHERE trip_id=? AND member_id=?`, [currentTrip.id, memberId]);
+        tripMembers = tripMembers.filter(id => id !== memberId);
+      }
+    };
+
+    // ── Documents ────────────────────────────────────────────────────────────
+    window._uploadDoc = async function(input) {
+      const file = input.files[0];
+      if (!file) return;
+      input.value = "";
+
+      try {
+        const { id: fileKey } = await filesHelper.upload(file);
+        const res = await fetch(DOCS, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            title:     file.name,
+            category:  "other",
+            fileKey,
+            mimeType:  file.type,
+            sizeBytes: file.size,
+            sourceId:  currentTrip.id,
+            folder:    currentTrip.title,
+            sharedWith: ["everyone"],
+          }),
+        });
+        if (!res.ok) throw new Error(`Upload failed (${res.status})`);
+        const doc = await res.json();
+        tripDocs = [...tripDocs, doc];
+        refreshTab();
+      } catch (e) {
+        alert(`Upload failed: ${e.message}`);
+      }
+    };
+
+    window._deleteDoc = async function(docId, fileKey) {
+      const ok = await hubConfirm({ message: "Remove this document?", destructive: true });
+      if (!ok) return;
+      await fetch(`${DOCS}/${docId}`, { method: "DELETE" }).catch(() => {});
+      if (fileKey) await filesHelper.delete(fileKey).catch(() => {});
+      tripDocs = tripDocs.filter(d => d.id !== docId);
+      refreshTab();
+    };
+
+    // ── Delete trip ───────────────────────────────────────────────────────────
+    window._deleteTrip = async function() {
+      const ok = await hubConfirm({
+        message:      `Delete "${currentTrip.title}"?`,
+        description:  "This will permanently remove the trip, all itinerary items, and packing lists.",
+        confirmLabel: "Delete",
+        destructive:  true,
+      });
+      if (!ok) return;
+
+      const tripId = currentTrip.id;
+      await Promise.all([
+        db(`DELETE FROM trips WHERE id=?`, [tripId]),
+        db(`DELETE FROM trip_members WHERE trip_id=?`, [tripId]),
+        db(`DELETE FROM itinerary_items WHERE trip_id=?`, [tripId]),
+        db(`DELETE FROM packing_items WHERE trip_id=?`, [tripId]),
+      ]);
+
+      trips = trips.filter(t => t.id !== tripId);
+      publishTrips();
+      goBack();
+    };
+
+    // ── Exposed globals ───────────────────────────────────────────────────────
+    window._goBack       = goBack;
+    window.closeModal    = closeModal;
+    window._setTab       = function(tab) { currentTab = tab; renderTrip(); };
+    window._openTripById = function(id) {
+      const trip = trips.find(t => t.id === id);
+      if (trip) openTrip(trip);
+    };
+
+    function handleDeepLink() {
+      const params = new URLSearchParams(window.location.search);
+      const tripId = params.get("tripId");
+      if (tripId && view === "list") {
+        const trip = trips.find(t => t.id === tripId);
+        if (trip) openTrip(trip);
+      }
+    }
+
+    // ── Init ─────────────────────────────────────────────────────────────────
+    (async () => {
+      await Promise.all([loadMembers(), loadTrips()]);
+      render();
+      handleDeepLink();
+    })();
+  </script>
+</body>
+</html>
