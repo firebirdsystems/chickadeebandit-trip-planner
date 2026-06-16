@@ -1,5 +1,4 @@
-CREATE TABLE IF NOT EXISTS trips (
-  household_id UUID NOT NULL DEFAULT current_setting('app.household_id', true)::uuid,
+CREATE TABLE IF NOT EXISTS app_trip_planner__trips (
   id           TEXT NOT NULL,
   title        TEXT NOT NULL,
   destination  TEXT NOT NULL DEFAULT '',
@@ -9,21 +8,19 @@ CREATE TABLE IF NOT EXISTS trips (
   notes        TEXT NOT NULL DEFAULT '',
   created_by   TEXT NOT NULL,
   created_at   TEXT NOT NULL,
-  PRIMARY KEY (household_id, id)
+  PRIMARY KEY (id)
 );
 
-CREATE TABLE IF NOT EXISTS trip_members (
-  household_id UUID NOT NULL DEFAULT current_setting('app.household_id', true)::uuid,
+CREATE TABLE IF NOT EXISTS app_trip_planner__trip_members (
   id           TEXT NOT NULL,
   trip_id      TEXT NOT NULL,
   member_id    TEXT NOT NULL,
   added_at     TEXT NOT NULL,
-  PRIMARY KEY (household_id, id),
-  UNIQUE (household_id, trip_id, member_id)
+  PRIMARY KEY (id),
+  UNIQUE (trip_id, member_id)
 );
 
-CREATE TABLE IF NOT EXISTS itinerary_items (
-  household_id      UUID NOT NULL DEFAULT current_setting('app.household_id', true)::uuid,
+CREATE TABLE IF NOT EXISTS app_trip_planner__itinerary_items (
   id                TEXT NOT NULL,
   trip_id           TEXT NOT NULL,
   item_date         TEXT,
@@ -36,11 +33,10 @@ CREATE TABLE IF NOT EXISTS itinerary_items (
   confirmation_code TEXT NOT NULL DEFAULT '',
   created_by        TEXT NOT NULL,
   created_at        TEXT NOT NULL,
-  PRIMARY KEY (household_id, id)
+  PRIMARY KEY (id)
 );
 
-CREATE TABLE IF NOT EXISTS packing_items (
-  household_id UUID NOT NULL DEFAULT current_setting('app.household_id', true)::uuid,
+CREATE TABLE IF NOT EXISTS app_trip_planner__packing_items (
   id           TEXT NOT NULL,
   trip_id      TEXT NOT NULL,
   member_id    TEXT,
@@ -49,5 +45,5 @@ CREATE TABLE IF NOT EXISTS packing_items (
   checked_by   TEXT,
   checked_at   TEXT,
   created_at   TEXT NOT NULL,
-  PRIMARY KEY (household_id, id)
+  PRIMARY KEY (id)
 );

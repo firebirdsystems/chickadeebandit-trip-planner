@@ -6,7 +6,6 @@ SELECT
   t.end_date,
   t.status,
   t.notes
-FROM trips t
-WHERE t.household_id = current_setting('app.household_id', true)::uuid
+FROM app_trip_planner__trips t
 ORDER BY t.start_date DESC
 LIMIT 50

@@ -6,9 +6,8 @@ SELECT
   t.end_date,
   t.status,
   t.notes
-FROM trips t
-WHERE t.household_id = current_setting('app.household_id', true)::uuid
-  AND t.end_date >= CURRENT_DATE::text
+FROM app_trip_planner__trips t
+WHERE t.end_date >= CURRENT_DATE
   AND t.status != 'cancelled'
 ORDER BY t.start_date
 LIMIT 20
