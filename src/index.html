@@ -794,7 +794,7 @@
         closeModal();
         publishTrips();
 
-        fetch("/api/activity", {
+        fetch(window.__ACTIVITY_URL ?? "/api/activity", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
