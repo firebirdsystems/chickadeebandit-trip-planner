@@ -282,7 +282,7 @@
     import {
       CAT_ICONS, STATUS_LABELS,
       nightCount, dateRange, dayLabel, formatDateRange,
-      packingProgress, sortItinerary,
+      packingProgress, sortItinerary, safeHttpUrl,
     } from "./logic.js";
 
     // ── Runtime globals ──────────────────────────────────────────────────────
@@ -359,15 +359,19 @@
     }
 
     async function loadTripDetail(tripId) {
-      const [{ rows: mRows }, { rows: iRows }, { rows: pRows }] = await Promise.all([
+      const [{ rows: mRows }, { rows: iRows }, { rows: pRows }, { rows: sharedRows }] = await Promise.all([
         db(`SELECT member_id FROM app_trip_planner__trip_members WHERE trip_id = ?`, [tripId]),
         db(`SELECT * FROM app_trip_planner__itinerary_items WHERE trip_id = ? ORDER BY item_date NULLS LAST, sort_order, created_at`, [tripId]),
         db(`SELECT * FROM app_trip_planner__packing_items WHERE trip_id = ? ORDER BY member_id NULLS FIRST, created_at`, [tripId]),
+        db(`SELECT * FROM app_trip_planner__shared_packing_items WHERE trip_id = ? ORDER BY created_at`, [tripId]),
       ]);
 
       tripMembers    = mRows.map(r => r.member_id);
       itineraryItems = iRows;
-      packingItems   = pRows;
+      packingItems   = [
+        ...pRows.map(row => ({ ...row, shared: false })),
+        ...sharedRows.map(row => ({ ...row, member_id: null, shared: true })),
+      ];
       tripDocs       = [];
 
       if (DOCS) {
@@ -425,6 +429,9 @@
       return `<span class="badge" style="${styles[status] ?? styles.planning}">${esc(STATUS_LABELS[status] ?? status)}</span>`;
     }
 
+    function jsArg(value) {
+      return esc(JSON.stringify(String(value)));
+    }
 
     // ── Render ───────────────────────────────────────────────────────────────
     function render() {
@@ -467,7 +474,7 @@
     function tripCard(trip) {
       const nights = nightCount(trip.start_date, trip.end_date);
       return `
-        <div class="card trip-card" onclick="window._openTripById('${esc(trip.id)}')">
+        <div class="card trip-card" onclick="window._openTripById(${jsArg(trip.id)})">
           <div class="trip-card-header">
             <div>
               <div class="trip-title">${esc(trip.title)}</div>
@@ -543,7 +550,7 @@
           <div class="day-section">
             <div class="day-label">${esc(dayLabel(date))}</div>
             ${items.map(itinItemHtml).join("")}
-            ${isAdmin ? `<button class="btn-add" onclick="window._newItem('${esc(date)}')">+ Add item</button>` : ""}
+            ${isAdmin ? `<button class="btn-add" onclick="window._newItem(${jsArg(date)})">+ Add item</button>` : ""}
           </div>
         `;
       }).join("");
@@ -562,6 +569,7 @@
     function itinItemHtml(item) {
       const icon    = CAT_ICONS[item.category] ?? "📌";
       const isAdmin = !ME || isAdult(ME);
+      const bookingUrl = safeHttpUrl(item.booking_url);
       return `
         <div class="itin-item">
           <span class="item-icon">${icon}</span>
@@ -570,12 +578,12 @@
             ${item.time             ? `<div class="item-time">${esc(item.time)}</div>` : ""}
             ${item.description      ? `<div class="item-desc">${esc(item.description)}</div>` : ""}
             ${item.confirmation_code ? `<div class="item-conf">Conf: ${esc(item.confirmation_code)}</div>` : ""}
-            ${item.booking_url      ? `<div class="item-link"><a href="${esc(item.booking_url)}" target="_blank" rel="noopener noreferrer">View booking ↗</a></div>` : ""}
+            ${bookingUrl ? `<div class="item-link"><a href="${esc(bookingUrl)}" target="_blank" rel="noopener noreferrer">View booking ↗</a></div>` : ""}
           </div>
           ${isAdmin ? `
             <div class="item-actions">
-              <button class="btn-icon" title="Edit" onclick="window._editItem('${esc(item.id)}')">✏️</button>
-              <button class="btn-icon" title="Remove" onclick="window._deleteItem('${esc(item.id)}')">🗑️</button>
+              <button class="btn-icon" title="Edit" onclick="window._editItem(${jsArg(item.id)})">✏️</button>
+              <button class="btn-icon" title="Remove" onclick="window._deleteItem(${jsArg(item.id)})">🗑️</button>
             </div>
           ` : ""}
         </div>
@@ -595,7 +603,7 @@
 
       function section(title, items, memberId) {
         const pct  = packingProgress(items);
-        const canAdd = !ME || isAdult(ME) || memberId === myId || memberId === null;
+        const canAdd = !ME || isAdult(ME) || memberId === myId;
         return `
           <div class="pack-section">
             <div class="pack-section-header">
@@ -604,7 +612,7 @@
             </div>
             ${items.map(i => packItemHtml(i, myId)).join("")}
             ${items.length === 0 ? `<p class="muted" style="padding:4px 0 6px">Nothing added yet.</p>` : ""}
-            ${canAdd ? `<button class="btn-add" onclick="window._addPacking(${memberId ? `'${esc(memberId)}'` : "null"})">+ Add item</button>` : ""}
+            ${canAdd ? `<button class="btn-add" onclick="window._addPacking(${memberId ? jsArg(memberId) : "null"})">+ Add item</button>` : ""}
           </div>
         `;
       }
@@ -622,18 +630,18 @@
     }
 
     function packItemHtml(item, myId) {
-      const canToggle = !ME || item.member_id === myId || isAdult(ME);
-      const canDelete = !ME || item.member_id === myId || isAdult(ME);
+      const canToggle = !ME || isAdult(ME) || (!item.shared && item.member_id === myId);
+      const canDelete = !ME || isAdult(ME) || (!item.shared && item.member_id === myId);
       const checkerName = item.checked_by ? (memberMap.get(item.checked_by)?.name ?? item.checked_by) : null;
       return `
         <div class="pack-item${item.checked ? " is-checked" : ""}">
           <button class="checkbox${item.checked ? " is-checked" : ""}${!canToggle ? " readonly" : ""}"
-            ${canToggle ? `onclick="window._togglePacking('${esc(item.id)}')"` : ""}
+            ${canToggle ? `onclick="window._togglePacking(${jsArg(item.id)})"` : ""}
             aria-label="${item.checked ? "Uncheck" : "Check"}"
           >${item.checked ? "✓" : ""}</button>
           <span class="pack-label">${esc(item.label)}</span>
           ${checkerName && item.checked ? `<span class="checked-by">${esc(checkerName)}</span>` : ""}
-          ${canDelete ? `<button class="btn-icon-sm" title="Remove" onclick="window._deletePacking('${esc(item.id)}')">×</button>` : ""}
+          ${canDelete ? `<button class="btn-icon-sm" title="Remove" onclick="window._deletePacking(${jsArg(item.id)})">×</button>` : ""}
         </div>
       `;
     }
@@ -648,7 +656,7 @@
           <span class="doc-name">📄 ${esc(doc.title)}</span>
           <div class="doc-actions">
             ${doc.fileKey ? `<a class="btn-ghost btn-sm" href="${esc(filesHelper.url(doc.fileKey))}" target="_blank" rel="noopener">Download</a>` : ""}
-            ${isAdmin ? `<button class="btn-ghost btn-sm" onclick="window._deleteDoc('${esc(doc.id)}', '${esc(doc.fileKey ?? "")}')">Remove</button>` : ""}
+            ${isAdmin ? `<button class="btn-ghost btn-sm" onclick="window._deleteDoc(${jsArg(doc.id)}, ${jsArg(doc.fileKey ?? "")})">Remove</button>` : ""}
           </div>
         </div>
       `).join("");
@@ -676,7 +684,7 @@
                 ${isAdmin
                   ? `<label class="member-toggle" title="${tripMembers.includes(m.id) ? "Remove from trip" : "Add to trip"}">
                        <input type="checkbox" ${tripMembers.includes(m.id) ? "checked" : ""}
-                         onchange="window._toggleMember('${esc(m.id)}', this.checked)">
+                         onchange="window._toggleMember(${jsArg(m.id)}, this.checked)">
                      </label>`
                   : tripMembers.includes(m.id) ? `<span class="badge-going">Going</span>` : ""
                 }
@@ -926,7 +934,7 @@
         </div>
         <div class="modal-actions">
           <button class="btn-ghost" onclick="closeModal()">Cancel</button>
-          <button class="btn-primary" onclick="window._submitNewItem(${date ? `'${esc(date)}'` : "null"})">Add item</button>
+          <button class="btn-primary" onclick="window._submitNewItem(${date ? jsArg(date) : "null"})">Add item</button>
         </div>
       `);
       setTimeout(() => document.getElementById("f-title")?.focus(), 50);
@@ -1009,7 +1017,7 @@
         </div>
         <div class="modal-actions">
           <button class="btn-ghost" onclick="closeModal()">Cancel</button>
-          <button class="btn-primary" onclick="window._submitEditItem('${esc(itemId)}')">Save</button>
+          <button class="btn-primary" onclick="window._submitEditItem(${jsArg(itemId)})">Save</button>
         </div>
       `);
     };
@@ -1070,7 +1078,7 @@
         ` : ""}
         <div class="modal-actions">
           <button class="btn-ghost" onclick="closeModal()">Cancel</button>
-          <button class="btn-primary" onclick="window._submitAddPacking(${memberId ? `'${esc(memberId)}'` : "null"})">Add</button>
+          <button class="btn-primary" onclick="window._submitAddPacking(${memberId ? jsArg(memberId) : "null"})">Add</button>
         </div>
       `);
       setTimeout(() => document.getElementById("f-label")?.focus(), 50);
@@ -1089,14 +1097,22 @@
         const id  = crypto.randomUUID();
         const now = new Date().toISOString();
 
-        await db(
-          `INSERT INTO app_trip_planner__packing_items (id, trip_id, member_id, label, checked, created_at)
-           VALUES (?, ?, ?, ?, 0, ?)`,
-          [id, currentTrip.id, memberId, label, now]
-        );
+        if (memberId) {
+          await db(
+            `INSERT INTO app_trip_planner__packing_items (id, trip_id, member_id, label, checked, created_at)
+             VALUES (?, ?, ?, ?, 0, ?)`,
+            [id, currentTrip.id, memberId, label, now]
+          );
+        } else {
+          await db(
+            `INSERT INTO app_trip_planner__shared_packing_items (id, trip_id, label, checked, created_at)
+             VALUES (?, ?, ?, 0, ?)`,
+            [id, currentTrip.id, label, now]
+          );
+        }
 
         packingItems = [...packingItems,
-          { id, trip_id: currentTrip.id, member_id: memberId, label, checked: 0, checked_by: null, checked_at: null, created_at: now }
+          { id, trip_id: currentTrip.id, member_id: memberId, label, checked: 0, checked_by: null, checked_at: null, created_at: now, shared: !memberId }
         ];
         closeModal();
         refreshTab();
@@ -1118,8 +1134,11 @@
       const newChecked = item.checked ? 0 : 1;
       const now        = new Date().toISOString();
 
+      const table = item.shared
+        ? "app_trip_planner__shared_packing_items"
+        : "app_trip_planner__packing_items";
       await db(
-        `UPDATE app_trip_planner__packing_items SET checked=?, checked_by=?, checked_at=? WHERE id=?`,
+        `UPDATE ${table} SET checked=?, checked_by=?, checked_at=? WHERE id=?`,
         [newChecked, newChecked ? (ME?.id ?? null) : null, newChecked ? now : null, itemId]
       );
 
@@ -1133,7 +1152,12 @@
     };
 
     window._deletePacking = async function(itemId) {
-      await db(`DELETE FROM app_trip_planner__packing_items WHERE id=?`, [itemId]);
+      const item = packingItems.find(i => i.id === itemId);
+      if (!item) return;
+      const table = item.shared
+        ? "app_trip_planner__shared_packing_items"
+        : "app_trip_planner__packing_items";
+      await db(`DELETE FROM ${table} WHERE id=?`, [itemId]);
       packingItems = packingItems.filter(i => i.id !== itemId);
       refreshTab();
     };
@@ -1210,6 +1234,7 @@
         db(`DELETE FROM app_trip_planner__trip_members WHERE trip_id=?`, [tripId]),
         db(`DELETE FROM app_trip_planner__itinerary_items WHERE trip_id=?`, [tripId]),
         db(`DELETE FROM app_trip_planner__packing_items WHERE trip_id=?`, [tripId]),
+        db(`DELETE FROM app_trip_planner__shared_packing_items WHERE trip_id=?`, [tripId]),
       ]);
 
       trips = trips.filter(t => t.id !== tripId);

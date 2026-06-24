@@ -6,6 +6,7 @@ import {
   formatDateRange,
   packingProgress,
   sortItinerary,
+  safeHttpUrl,
   CAT_ICONS,
   STATUS_LABELS,
 } from "../src/logic.js";
@@ -183,5 +184,19 @@ describe("STATUS_LABELS", () => {
     for (const status of ["planning", "confirmed", "completed", "cancelled"]) {
       expect(STATUS_LABELS[status]).toBeTruthy();
     }
+  });
+});
+
+describe("safeHttpUrl", () => {
+  it("allows HTTP and HTTPS URLs", () => {
+    expect(safeHttpUrl("https://example.com/booking")).toBe("https://example.com/booking");
+    expect(safeHttpUrl("http://example.com/booking")).toBe("http://example.com/booking");
+  });
+
+  it("rejects script, data, relative, and malformed URLs", () => {
+    expect(safeHttpUrl("javascript:alert(1)")).toBeNull();
+    expect(safeHttpUrl("data:text/html,x")).toBeNull();
+    expect(safeHttpUrl("/relative")).toBeNull();
+    expect(safeHttpUrl("not a url")).toBeNull();
   });
 });

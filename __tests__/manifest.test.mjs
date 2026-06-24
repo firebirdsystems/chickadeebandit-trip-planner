@@ -38,6 +38,28 @@ describe("manifest.json", () => {
     expect(Array.isArray(manifest.data_access.reads)).toBe(true);
     expect(Array.isArray(manifest.data_access.writes)).toBe(true);
   });
+
+  it("enforces adult administration and private packing ownership", () => {
+    for (const table of ["trips", "trip_members", "itinerary_items", "shared_packing_items"]) {
+      expect(manifest.row_policies?.[table]).toEqual({ kind: "adult_writable" });
+    }
+    expect(manifest.row_policies?.packing_items).toEqual({
+      kind: "owner_only",
+      member_column: "member_id",
+    });
+  });
+
+  it("protects store, document, and raw-file writes", () => {
+    expect(manifest.store_acls?.calendar_events?.write?.require_role).toBe("adult");
+    expect(manifest.document_acls?.write?.require_role).toBe("adult");
+    expect(manifest.file_acls?.write?.require_role).toBe("adult");
+  });
+
+  it("keeps SQL date columns plaintext", () => {
+    expect(manifest.db_plaintext_columns).toEqual(expect.arrayContaining([
+      "start_date", "end_date", "item_date",
+    ]));
+  });
 });
 
 // ── ai_access SQL file validation ─────────────────────────────────────────────

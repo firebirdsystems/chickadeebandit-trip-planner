@@ -70,3 +70,14 @@ export function sortItinerary(items) {
     return (a.sort_order ?? 0) - (b.sort_order ?? 0);
   });
 }
+
+/** Return a normalized web URL, rejecting script and non-web schemes. */
+export function safeHttpUrl(value) {
+  if (!value) return null;
+  try {
+    const url = new URL(value);
+    return url.protocol === "https:" || url.protocol === "http:" ? url.href : null;
+  } catch {
+    return null;
+  }
+}

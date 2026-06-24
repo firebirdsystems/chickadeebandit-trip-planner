@@ -17,6 +17,28 @@
     "requires_approval": false
   },
   "storage": "db",
+  "db_plaintext_columns": ["start_date", "end_date", "item_date"],
+  "row_policies": {
+    "trips": { "kind": "adult_writable" },
+    "trip_members": { "kind": "adult_writable" },
+    "itinerary_items": { "kind": "adult_writable" },
+    "packing_items": {
+      "kind": "owner_only",
+      "member_column": "member_id"
+    },
+    "shared_packing_items": { "kind": "adult_writable" }
+  },
+  "store_acls": {
+    "calendar_events": {
+      "write": { "require_role": "adult" }
+    }
+  },
+  "document_acls": {
+    "write": { "require_role": "adult" }
+  },
+  "file_acls": {
+    "write": { "require_role": "adult" }
+  },
   "nav": { "label": "Trips" },
   "icon": "✈️",
   "resource_limits": {
