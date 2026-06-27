@@ -40,13 +40,16 @@ describe("manifest.json", () => {
   });
 
   it("enforces adult administration and private packing ownership", () => {
-    for (const table of ["trips", "trip_members", "itinerary_items", "shared_packing_items"]) {
+    for (const table of ["trips", "trip_members", "itinerary_items"]) {
       expect(manifest.row_policies?.[table]).toEqual({ kind: "adult_writable" });
     }
     expect(manifest.row_policies?.packing_items).toEqual({
       kind: "owner_only",
       member_column: "member_id",
     });
+    // shared_packing_items is intentionally unpoliced — the shared list is
+    // fully collaborative so any member may add or tick off items.
+    expect(manifest.row_policies?.shared_packing_items).toBeUndefined();
   });
 
   it("protects store, document, and raw-file writes", () => {

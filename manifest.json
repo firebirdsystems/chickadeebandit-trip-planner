@@ -25,8 +25,7 @@
     "packing_items": {
       "kind": "owner_only",
       "member_column": "member_id"
-    },
-    "shared_packing_items": { "kind": "adult_writable" }
+    }
   },
   "store_acls": {
     "calendar_events": {

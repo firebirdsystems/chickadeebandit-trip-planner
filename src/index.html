@@ -385,6 +385,8 @@
     // ── Calendar export ──────────────────────────────────────────────────────
     async function publishTrips() {
       if (!STORE) return;
+      // calendar_events is store_acls write:adult — non-adults would 403, so skip.
+      if (ME && !isAdult(ME)) return;
       const events = trips
         .filter(t => t.status !== "cancelled")
         .map(t => ({
@@ -603,7 +605,9 @@
 
       function section(title, items, memberId) {
         const pct  = packingProgress(items);
-        const canAdd = !ME || isAdult(ME) || memberId === myId;
+        // Shared list (memberId === null) is collaborative — any member may add.
+        // A specific member's personal list stays adult-or-owner only.
+        const canAdd = !ME || isAdult(ME) || memberId === myId || memberId === null;
         return `
           <div class="pack-section">
             <div class="pack-section-header">
@@ -630,8 +634,10 @@
     }
 
     function packItemHtml(item, myId) {
-      const canToggle = !ME || isAdult(ME) || (!item.shared && item.member_id === myId);
-      const canDelete = !ME || isAdult(ME) || (!item.shared && item.member_id === myId);
+      // Shared items are collaborative: any member may tick or remove them.
+      // Personal items stay adult-or-owner only.
+      const canToggle = !ME || isAdult(ME) || item.shared || (item.member_id === myId);
+      const canDelete = !ME || isAdult(ME) || item.shared || (item.member_id === myId);
       const checkerName = item.checked_by ? (memberMap.get(item.checked_by)?.name ?? item.checked_by) : null;
       return `
         <div class="pack-item${item.checked ? " is-checked" : ""}">
