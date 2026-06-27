@@ -276,7 +276,7 @@
 
   <script type="module">
     import {
-      esc, isAdult, memberColor, initial,
+      hubAlert, esc, isAdult, memberColor, initial,
       hubConfirm, createFilesHelper, crossWrite
     } from "/hub-sdk.js";
     import {
@@ -779,8 +779,8 @@
       const notes = document.getElementById("f-notes").value.trim();
 
       if (!title) { document.getElementById("f-title").focus(); return; }
-      if (!start || !end) { alert("Please set start and end dates."); return; }
-      if (start > end) { alert("End date must be on or after start date."); return; }
+      if (!start || !end) { hubAlert("Please set start and end dates."); return; }
+      if (start > end) { hubAlert("End date must be on or after start date."); return; }
 
       const btn = modalEl?.querySelector(".btn-primary");
       if (btn) { btn.disabled = true; btn.textContent = "Creating…"; }
@@ -875,7 +875,7 @@
       const notes  = document.getElementById("f-notes").value.trim();
 
       if (!title) { document.getElementById("f-title").focus(); return; }
-      if (start > end) { alert("End date must be on or after start date."); return; }
+      if (start > end) { hubAlert("End date must be on or after start date."); return; }
 
       const btn = modalEl?.querySelector(".btn-primary");
       if (btn) { btn.disabled = true; btn.textContent = "Saving…"; }
@@ -1211,7 +1211,7 @@
         tripDocs = [...tripDocs, doc];
         refreshTab();
       } catch (e) {
-        alert(`Upload failed: ${e.message}`);
+        hubAlert(`Upload failed: ${e.message}`);
       }
     };
 
