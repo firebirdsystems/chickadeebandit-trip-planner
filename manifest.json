@@ -17,6 +17,7 @@
     "requires_approval": false
   },
   "storage": "db",
+  "db_encryption": "off",
   "db_plaintext_columns": ["start_date", "end_date", "item_date"],
   "row_policies": {
     "trips": { "kind": "adult_writable" },
