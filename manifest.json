@@ -1,7 +1,7 @@
 {
   "id": "trip-planner",
   "name": "Trip Planner",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "Collaborative family vacation planning — itinerary by day, per-person packing lists, shared notes, and booking confirmations in one place.",
   "entrypoint": "index.html",
   "runtime": "static",

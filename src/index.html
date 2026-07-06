@@ -361,8 +361,11 @@
     async function loadTripDetail(tripId) {
       const [{ rows: mRows }, { rows: iRows }, { rows: pRows }, { rows: sharedRows }] = await Promise.all([
         db(`SELECT member_id FROM app_trip_planner__trip_members WHERE trip_id = ?`, [tripId]),
-        db(`SELECT * FROM app_trip_planner__itinerary_items WHERE trip_id = ? ORDER BY item_date NULLS LAST, sort_order, created_at`, [tripId]),
-        db(`SELECT * FROM app_trip_planner__packing_items WHERE trip_id = ? ORDER BY member_id NULLS FIRST, created_at`, [tripId]),
+        // (col IS NULL) / (col IS NOT NULL) rather than NULLS LAST / NULLS
+        // FIRST: the hub's SQL rewriter cannot parse either, and unparseable
+        // statements against policy-governed tables are rejected outright.
+        db(`SELECT * FROM app_trip_planner__itinerary_items WHERE trip_id = ? ORDER BY (item_date IS NULL), item_date, sort_order, created_at`, [tripId]),
+        db(`SELECT * FROM app_trip_planner__packing_items WHERE trip_id = ? ORDER BY (member_id IS NOT NULL), member_id, created_at`, [tripId]),
         db(`SELECT * FROM app_trip_planner__shared_packing_items WHERE trip_id = ? ORDER BY created_at`, [tripId]),
       ]);
 
