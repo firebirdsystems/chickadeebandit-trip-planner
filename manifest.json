@@ -1,7 +1,7 @@
 {
   "id": "trip-planner",
   "name": "Trip Planner",
-  "version": "1.0.1",
+  "version": "1.0.2",
   "description": "Collaborative family vacation planning — itinerary by day, per-person packing lists, shared notes, and booking confirmations in one place.",
   "entrypoint": "index.html",
   "runtime": "static",
@@ -38,7 +38,8 @@
     "write": { "require_role": "adult" }
   },
   "file_acls": {
-    "write": { "require_role": "adult" }
+    "write": { "require_role": "adult" },
+    "read": "document_acl"
   },
   "nav": { "label": "Trips" },
   "icon": "✈️",
