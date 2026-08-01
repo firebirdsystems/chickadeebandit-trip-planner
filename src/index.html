@@ -317,7 +317,26 @@
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ sql, params }),
       });
-      return res.json();
+      const json = await res.json();
+      // The hub reports a refused write as a JSON body with an `error` key
+      // (403 row policy, 400 bad statement, 507 over quota). fetch() does not
+      // reject on those, so without this throw every caller's rollback and
+      // error toast below is unreachable code.
+      if (!res.ok || json.error) throw new Error(json.error || `Database request failed (${res.status})`);
+      return json;
+    }
+
+    /** Several statements as one transaction — all apply, or none does. */
+    async function dbBatch(statements) {
+      if (!DB || statements.length === 0) return { results: [] };
+      const res = await fetch(DB, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ statements }),
+      });
+      const json = await res.json();
+      if (!res.ok || json.error) throw new Error(json.error || `Database request failed (${res.status})`);
+      return json;
     }
 
     // ── Load functions ───────────────────────────────────────────────────────
@@ -390,7 +409,20 @@
       if (!STORE) return;
       // calendar_events is store_acls write:adult — non-adults would 403, so skip.
       if (ME && !isAdult(ME)) return;
-      const events = trips
+      // Re-read before publishing. This writes the WHOLE calendar_events array,
+      // so building it from this tab's in-memory `trips` meant a client holding
+      // a stale list republished trips other members had already deleted —
+      // resurrecting them on everyone's calendar with no way to tell where they
+      // came from. The database is the source of truth at the moment of the
+      // write, not whatever this page loaded earlier.
+      let source = trips;
+      try {
+        const { rows } = await db(
+          `SELECT id, title, destination, start_date, end_date, status FROM app_trip_planner__trips`,
+        );
+        if (rows) source = rows;
+      } catch { /* fall back to the in-memory list rather than skipping the export */ }
+      const events = source
         .filter(t => t.status !== "cancelled")
         .map(t => ({
           id:           t.id,
@@ -1238,16 +1270,25 @@
       if (!ok) return;
 
       const tripId = currentTrip.id;
-      await Promise.all([
-        db(`DELETE FROM app_trip_planner__trips WHERE id=?`, [tripId]),
-        db(`DELETE FROM app_trip_planner__trip_members WHERE trip_id=?`, [tripId]),
-        db(`DELETE FROM app_trip_planner__itinerary_items WHERE trip_id=?`, [tripId]),
-        db(`DELETE FROM app_trip_planner__packing_items WHERE trip_id=?`, [tripId]),
-        db(`DELETE FROM app_trip_planner__shared_packing_items WHERE trip_id=?`, [tripId]),
-      ]);
+      // One transaction. As five concurrent requests, any subset could fail —
+      // most damagingly the trip row surviving while its itinerary and packing
+      // lists were gone, which reads to everyone as "the trip lost all its
+      // contents" rather than as a failed delete.
+      try {
+        await dbBatch([
+          { sql: `DELETE FROM app_trip_planner__trip_members WHERE trip_id=?`, params: [tripId] },
+          { sql: `DELETE FROM app_trip_planner__itinerary_items WHERE trip_id=?`, params: [tripId] },
+          { sql: `DELETE FROM app_trip_planner__packing_items WHERE trip_id=?`, params: [tripId] },
+          { sql: `DELETE FROM app_trip_planner__shared_packing_items WHERE trip_id=?`, params: [tripId] },
+          { sql: `DELETE FROM app_trip_planner__trips WHERE id=?`, params: [tripId] },
+        ]);
+      } catch (e) {
+        await hubAlert("Could not delete this trip.", { description: e.message });
+        return;
+      }
 
       trips = trips.filter(t => t.id !== tripId);
-      publishTrips();
+      await publishTrips();
       goBack();
     };
 

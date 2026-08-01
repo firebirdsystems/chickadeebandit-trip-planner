@@ -27,12 +27,25 @@
     "packing_items": {
       "kind": "owner_only",
       "member_column": "member_id"
+    },
+    "shared_packing_items": {
+      "kind": "adult_writable"
     }
   },
   "store_acls": {
     "calendar_events": {
       "write": { "require_role": "adult" }
     }
+  },
+  "member_references": {
+    "trips": { "column": "created_by", "on_removed": "keep" },
+    "itinerary_items": { "column": "created_by", "on_removed": "keep" },
+    "trip_members": { "column": "member_id", "on_removed": "delete" },
+    "packing_items": [
+      { "column": "member_id", "on_removed": "delete" },
+      { "column": "checked_by", "on_removed": "keep" }
+    ],
+    "shared_packing_items": { "column": "checked_by", "on_removed": "keep" }
   },
   "document_acls": {
     "write": { "require_role": "adult" }

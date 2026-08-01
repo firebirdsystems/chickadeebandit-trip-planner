@@ -47,9 +47,13 @@ describe("manifest.json", () => {
       kind: "owner_only",
       member_column: "member_id",
     });
-    // shared_packing_items is intentionally unpoliced — the shared list is
-    // fully collaborative so any member may add or tick off items.
-    expect(manifest.row_policies?.shared_packing_items).toBeUndefined();
+    // shared_packing_items was intentionally left unpoliced so the shared list
+    // would be fully collaborative — but an ungoverned table is ungoverned for
+    // everyone, so any member with access to the app, guests included, could
+    // delete the whole family's packing list. It now follows the same rule as
+    // the rest of the trip (adults administer), which is also what makes it
+    // visible to the platform's retention and member-removal machinery.
+    expect(manifest.row_policies?.shared_packing_items).toEqual({ kind: "adult_writable" });
   });
 
   it("protects store, document, and raw-file writes", () => {
@@ -127,3 +131,23 @@ if (manifest.ai_access) {
     });
   }
 }
+
+// Member removal (manifest.member_references). Someone who left the household
+// is not on the trip: their trip_members row and their personal packing list
+// go (packing_items is owner_only, so those rows would otherwise be reachable
+// by nobody). The trip itself, its itinerary, and "checked by" marks are the
+// household's shared record and keep their stale ids with a rendered fallback.
+describe("member_references", () => {
+  it("removes trip membership and personal packing, keeps shared trip data", () => {
+    expect(manifest.member_references).toEqual({
+      trips: { column: "created_by", on_removed: "keep" },
+      itinerary_items: { column: "created_by", on_removed: "keep" },
+      trip_members: { column: "member_id", on_removed: "delete" },
+      packing_items: [
+        { column: "member_id", on_removed: "delete" },
+        { column: "checked_by", on_removed: "keep" },
+      ],
+      shared_packing_items: { column: "checked_by", on_removed: "keep" },
+    });
+  });
+});
