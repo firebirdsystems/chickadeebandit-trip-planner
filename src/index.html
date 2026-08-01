@@ -269,6 +269,13 @@
     textarea { resize: vertical; }
     .check-field label { display: flex; align-items: center; gap: 8px; font-size: 0.875rem; font-weight: 400; cursor: pointer; }
     .check-field input[type="checkbox"] { width: 15px; height: 15px; accent-color: var(--hub-primary, #111827); }
+    .search-row { margin-bottom: 12px; }
+    .search-input {
+      width: 100%; border: 1.5px solid var(--border-mid, var(--border, #d1d5db));
+      border-radius: 8px; padding: 9px 11px; font: inherit;
+      background: var(--surface, var(--card, #fff)); color: var(--text, inherit);
+    }
+    .search-input:focus { outline: none; border-color: var(--accent, #6366f1); }
   </style>
 </head>
 <body>
@@ -277,12 +284,12 @@
   <script type="module">
     import {
       hubAlert, esc, isAdult, memberColor, initial,
-      hubConfirm, createFilesHelper, crossWrite
+      hubConfirm, createFilesHelper, crossWrite, searchMatch
     } from "/hub-sdk.js";
     import {
       CAT_ICONS, STATUS_LABELS,
       nightCount, dateRange, dayLabel, formatDateRange,
-      packingProgress, sortItinerary, safeHttpUrl,
+      packingProgress, sortItinerary, safeHttpUrl, searchableFields,
     } from "./logic.js";
 
     // ── Runtime globals ──────────────────────────────────────────────────────
@@ -301,6 +308,7 @@
     let memberMap      = new Map();
     let trips          = [];
     let view           = "list";  // "list" | "trip"
+let searchQ = "";       // in-app search (see logic.js searchableFields)
     let currentTrip    = null;
     let tripMembers    = [];      // member IDs on current trip
     let itineraryItems = [];
@@ -475,11 +483,22 @@
       view === "list" ? renderList() : renderTrip();
     }
 
+    // renderList rewrites the whole page, so put the caret back after typing.
+    document.addEventListener("input", (e) => {
+      if (e.target.id !== "search") return;
+      searchQ = e.target.value;
+      const caret = e.target.selectionStart;
+      renderList();
+      const next = document.getElementById("search");
+      if (next) { next.focus(); next.setSelectionRange(caret, caret); }
+    });
+
     function renderList() {
       const canCreate = !ME || isAdult(ME);
       const today     = new Date().toISOString().slice(0, 10);
-      const upcoming  = trips.filter(t => t.end_date >= today && t.status !== "cancelled");
-      const past      = trips.filter(t => t.end_date < today || t.status === "cancelled");
+      const matched   = searchQ ? trips.filter(t => searchMatch(searchQ, searchableFields(t))) : trips;
+      const upcoming  = matched.filter(t => t.end_date >= today && t.status !== "cancelled");
+      const past      = matched.filter(t => t.end_date < today || t.status === "cancelled");
 
       document.getElementById("app").innerHTML = `
         <div class="page">
@@ -488,13 +507,19 @@
             ${canCreate ? `<button class="btn-primary" onclick="window._newTrip()">+ New trip</button>` : ""}
           </div>
 
-          ${trips.length === 0 ? `
+          ${trips.length ? `<div class="search-row"><input id="search" class="search-input" type="search" placeholder="Search trips…" aria-label="Search trips" value="${esc(searchQ)}" /></div>` : ""}
+          ${matched.length === 0 ? (searchQ ? `
+            <div class="empty">
+              <div class="empty-icon">🔍</div>
+              <p>No trips match "${esc(searchQ)}".</p>
+            </div>
+          ` : `
             <div class="empty">
               <div class="empty-icon">🗺️</div>
               <p>No trips planned yet.</p>
               ${canCreate ? `<button class="btn-primary" onclick="window._newTrip()">Plan a trip</button>` : ""}
             </div>
-          ` : `
+          `) : `
             ${upcoming.length > 0 ? `
               <div class="section-label">Upcoming</div>
               ${upcoming.map(tripCard).join("")}

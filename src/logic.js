@@ -81,3 +81,12 @@ export function safeHttpUrl(value) {
     return null;
   }
 }
+
+/**
+ * Fields the in-app search matches against (see hub-sdk `searchMatch`).
+ * Destination and notes count as well as the title — a trip is
+ * remembered as "the Lisbon one", which is the destination.
+ */
+export function searchableFields(item) {
+  return [item.title, item.destination, item.notes, item.status];
+}

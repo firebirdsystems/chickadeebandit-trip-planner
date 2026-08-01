@@ -8,7 +8,7 @@ import {
   sortItinerary,
   safeHttpUrl,
   CAT_ICONS,
-  STATUS_LABELS,
+  STATUS_LABELS, searchableFields,
 } from "../src/logic.js";
 
 // ── nightCount ────────────────────────────────────────────────────────────────
@@ -198,5 +198,13 @@ describe("safeHttpUrl", () => {
     expect(safeHttpUrl("data:text/html,x")).toBeNull();
     expect(safeHttpUrl("/relative")).toBeNull();
     expect(safeHttpUrl("not a url")).toBeNull();
+  });
+});
+
+describe("searchableFields", () => {
+  it("matches on the destination, which is how a trip is remembered", () => {
+    const fields = searchableFields({ title: "Half term", destination: "Lisbon", notes: "flights booked", status: "planned" });
+    expect(fields).toContain("Lisbon");
+    expect(fields).toContain("flights booked");
   });
 });
