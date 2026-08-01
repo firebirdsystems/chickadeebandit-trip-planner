@@ -55,6 +55,24 @@
     "read": "document_acl"
   },
   "nav": { "label": "Trips" },
+  "agenda": [
+    {
+      "kind": "event",
+      "label": "Trip",
+      "source": {
+        "kind": "sql",
+        "query": "SELECT id AS id, title AS title, NULLIF(destination, '') AS subtitle, :today AS when_at FROM app_trip_planner__trips WHERE start_date <= :today AND end_date >= :today AND status != 'cancelled' LIMIT 5"
+      }
+    },
+    {
+      "kind": "event",
+      "label": "Itinerary",
+      "source": {
+        "kind": "sql",
+        "query": "SELECT i.id AS id, i.title AS title, COALESCE(NULLIF(i.description, ''), t.destination) AS subtitle, CASE WHEN i.time IS NULL OR i.time = '' THEN i.item_date ELSE i.item_date || 'T' || i.time END AS when_at FROM app_trip_planner__itinerary_items i JOIN app_trip_planner__trips t ON t.id = i.trip_id AND t.status != 'cancelled' WHERE i.item_date = :today ORDER BY i.sort_order LIMIT 20"
+      }
+    }
+  ],
   "icon": "✈️",
   "resource_limits": {
     "max_db_bytes": 52428800,
