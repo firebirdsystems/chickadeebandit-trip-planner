@@ -20,6 +20,53 @@
   "storage": "db",
   "db_encryption": "off",
   "db_plaintext_columns": ["start_date", "end_date", "item_date"],
+  "glance": {
+    "source": {
+      "kind": "sql",
+      "query": "SELECT title AS title, start_date AS at FROM app_trip_planner__trips WHERE end_date >= :today AND status <> 'cancelled' ORDER BY start_date LIMIT 3"
+    },
+    "display": {
+      "template": "list",
+      "title": "title",
+      "when": "at"
+    }
+  },
+  "publishes": [
+    "trip.created"
+  ],
+  "publish_acls": {
+    "trip.created": { "require_role": "adult" }
+  },
+  "automation_actions": {
+    "create_trip": {
+      "title": "Start a trip",
+      "description": "Open a trip when another app's event fires - a booking confirmed, an occasion coming up, a calendar block someone marked as travel. The dates come from the trigger payload.",
+      "params": {
+        "created_by": { "type": "member", "label": "Planned by", "required": true },
+        "title": { "type": "text", "label": "Trip name", "required": true },
+        "start_date": { "type": "text", "label": "Start date (YYYY-MM-DD)", "required": true },
+        "end_date": { "type": "text", "label": "End date (YYYY-MM-DD)", "required": true },
+        "destination": { "type": "text", "label": "Where", "default": "" }
+      },
+      "dedupe": { "table": "trips", "column": "source_event_id" },
+      "steps": [
+        {
+          "op": "insert",
+          "table": "trips",
+          "values": {
+            "id": "$uuid",
+            "title": ":title",
+            "destination": ":destination",
+            "start_date": ":start_date",
+            "end_date": ":end_date",
+            "created_by": ":created_by",
+            "created_at": "$now",
+            "source_event_id": "$event_id"
+          }
+        }
+      ]
+    }
+  },
   "row_policies": {
     "trips": { "kind": "adult_writable" },
     "trip_members": { "kind": "adult_writable" },

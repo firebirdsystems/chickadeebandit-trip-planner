@@ -299,6 +299,22 @@
     const DOCS    = window.__DOCS_URL     ?? "";
     const FILES   = window.__FILES_URL    ?? "";
     const ME      = window.__CURRENT_MEMBER ?? null;
+const EVENTS  = window.__EVENTS_URL   ?? "";
+
+// Best-effort: the row is already written, so a failed publish is not fatal.
+async function publishEvent(type, subjectId, payload = {}) {
+  if (!EVENTS) return;
+  try {
+    await fetch(EVENTS, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ type, subject_id: subjectId, payload }),
+    });
+  } catch {
+    // ignored on purpose
+  }
+}
+
     const APP_ID  = window.__APP_ID       ?? "trip-planner";
 
     const filesHelper = createFilesHelper(FILES);
@@ -865,6 +881,9 @@ let searchQ = "";       // in-app search (see logic.js searchableFields)
         const newTrip = { id, title, destination: dest, start_date: start, end_date: end,
           status: "planning", notes, created_by: ME?.id ?? "system", created_at: now };
         trips = [newTrip, ...trips].sort((a, b) => b.start_date.localeCompare(a.start_date));
+        await publishEvent("trip.created", id, {
+          title, destination: dest, start_date: start, end_date: end,
+        });
         closeModal();
         publishTrips();
 
