@@ -883,6 +883,7 @@ let searchQ = "";       // in-app search (see logic.js searchableFields)
         trips = [newTrip, ...trips].sort((a, b) => b.start_date.localeCompare(a.start_date));
         await publishEvent("trip.created", id, {
           title, destination: dest, start_date: start, end_date: end,
+          created_by: ME?.id,
         });
         closeModal();
         publishTrips();
