@@ -888,15 +888,12 @@ let searchQ = "";       // in-app search (see logic.js searchableFields)
         closeModal();
         publishTrips();
 
-        fetch(window.__ACTIVITY_URL ?? "/api/activity", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            type: "trip.created",
-            description: `${ME?.name ?? "Someone"} planned a new trip: "${title}"`,
-            metadata: { deepLink: { appId: APP_ID, params: { tripId: id } } },
-          }),
-        }).catch(() => {});
+        // No activity-feed write. /api/activity takes one of the hub's own
+        // ActivityType values that a caller may write, NOT this app's event
+        // name — "trip.created" is an event type, so the hub refused it with a
+        // 403 on every trip and no household ever saw the entry. A fetch does
+        // not reject on 4xx, so the .catch() hid it. The trip.created event
+        // published above is the sink that works.
 
         await openTrip(newTrip);
       } catch (e) {
