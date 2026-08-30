@@ -284,7 +284,7 @@
   <script type="module">
     import {
       hubAlert, esc, isAdult, memberColor, initial,
-      hubConfirm, createFilesHelper, crossWrite, searchMatch
+      hubConfirm, createFilesHelper, crossWrite, searchMatch, logHubActivity
     } from "/hub-sdk.js";
     import {
       CAT_ICONS, STATUS_LABELS,
@@ -888,12 +888,15 @@ let searchQ = "";       // in-app search (see logic.js searchableFields)
         closeModal();
         publishTrips();
 
-        // No activity-feed write. /api/activity takes one of the hub's own
-        // ActivityType values that a caller may write, NOT this app's event
-        // name — "trip.created" is an event type, so the hub refused it with a
-        // 403 on every trip and no household ever saw the entry. A fetch does
-        // not reject on 4xx, so the .catch() hid it. The trip.created event
-        // published above is the sink that works.
+        // The trip.created event above and this feed line are different sinks,
+        // not duplicates: the event is machine-readable (automations, digests)
+        // and never rendered to anyone, while this is the household's
+        // human-readable "what happened" log. `trips` is adult_writable, so the
+        // title and destination named here are already household-readable.
+        logHubActivity(
+          `${ME?.name ?? "Someone"} planned a trip: ${title}${dest ? ` to ${dest}` : ""}`,
+          { deepLink: { appId: APP_ID, params: { trip: id } } },
+        );
 
         await openTrip(newTrip);
       } catch (e) {
