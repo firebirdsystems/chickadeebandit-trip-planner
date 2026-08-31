@@ -284,7 +284,7 @@
   <script type="module">
     import {
       hubAlert, esc, isAdult, memberColor, initial,
-      hubConfirm, createFilesHelper, crossWrite, searchMatch, logHubActivity
+      hubConfirm, createFilesHelper, crossWrite, searchMatch, logHubActivity, hubToday
     } from "/hub-sdk.js";
     import {
       CAT_ICONS, STATUS_LABELS,
@@ -511,7 +511,7 @@ let searchQ = "";       // in-app search (see logic.js searchableFields)
 
     function renderList() {
       const canCreate = !ME || isAdult(ME);
-      const today     = new Date().toISOString().slice(0, 10);
+      const today     = hubToday();
       const matched   = searchQ ? trips.filter(t => searchMatch(searchQ, searchableFields(t))) : trips;
       const upcoming  = matched.filter(t => t.end_date >= today && t.status !== "cancelled");
       const past      = matched.filter(t => t.end_date < today || t.status === "cancelled");

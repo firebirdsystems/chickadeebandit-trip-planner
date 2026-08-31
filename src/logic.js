@@ -27,12 +27,16 @@ export function nightCount(start, end) {
 
 /** Array of YYYY-MM-DD strings from start through end (inclusive). */
 export function dateRange(start, end) {
+  // Anchored at UTC midnight and stepped with setUTCDate: "T00:00:00" is a
+  // LOCAL instant, and toISOString() then reads it back in UTC — a day early
+  // west of Greenwich. A fixed +86400000 also skips or repeats a day across a
+  // DST boundary; calendar arithmetic in UTC does neither.
   const dates = [];
-  let d = new Date(start + "T00:00:00");
-  const last = new Date(end + "T00:00:00");
+  const d = new Date(start + "T00:00:00Z");
+  const last = new Date(end + "T00:00:00Z");
   while (d <= last) {
     dates.push(d.toISOString().slice(0, 10));
-    d = new Date(d.getTime() + 86400000);
+    d.setUTCDate(d.getUTCDate() + 1);
   }
   return dates;
 }
