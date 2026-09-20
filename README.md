@@ -1,6 +1,6 @@
 # Trip Planner
 
-A [Chickadee Bandit](http://chickadeebandit.com) app for collaborative family vacation planning — itinerary by day, per-person packing lists, shared notes, and booking confirmations in one place.
+A [Chickadee Bandit](https://chickadeebandit.com/app-library/trip-planner) app for collaborative family vacation planning — itinerary by day, per-person packing lists, shared notes, and booking confirmations in one place.
 
 ## Features
 
