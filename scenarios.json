@@ -1,0 +1,173 @@
+{
+  "scenarios": [
+    {
+      "name": "trips and itinerary are adult-writable: a child can read the plan but cannot create or change it",
+      "members": { "parent": "adult", "kid": "child" },
+      "steps": [
+        {
+          "action": "db",
+          "as": "parent",
+          "sql": "INSERT INTO app_trip_planner__trips (id, title, destination, start_date, end_date, created_by, created_at) VALUES (?, ?, ?, ?, ?, ?, ?)",
+          "params": ["t1", "Beach week", "Outer Banks", "2026-07-01", "2026-07-08", "{{parent}}", "2026-01-01T00:00:00Z"],
+          "expect": { "status": 200 }
+        },
+        {
+          "action": "db",
+          "as": "kid",
+          "sql": "SELECT id, title FROM app_trip_planner__trips",
+          "expect": { "status": 200, "rowCount": 1, "rowsContain": [{ "id": "t1", "title": "Beach week" }] }
+        },
+        {
+          "action": "db",
+          "as": "kid",
+          "sql": "INSERT INTO app_trip_planner__trips (id, title, start_date, end_date, created_by, created_at) VALUES (?, ?, ?, ?, ?, ?)",
+          "params": ["t-kid", "Disney", "2026-08-01", "2026-08-05", "{{kid}}", "2026-01-01T00:00:00Z"],
+          "expect": { "status": 403 }
+        },
+        {
+          "action": "db",
+          "as": "kid",
+          "sql": "UPDATE app_trip_planner__trips SET status = 'cancelled' WHERE id = 't1'",
+          "expect": { "status": 403 }
+        },
+        {
+          "action": "db",
+          "as": "kid",
+          "sql": "INSERT INTO app_trip_planner__itinerary_items (id, trip_id, item_date, title, created_by, created_at) VALUES (?, ?, ?, ?, ?, ?)",
+          "params": ["i-kid", "t1", "2026-07-02", "Skip school", "{{kid}}", "2026-01-01T00:00:00Z"],
+          "expect": { "status": 403 }
+        },
+        {
+          "action": "db",
+          "as": "parent",
+          "sql": "SELECT id, status FROM app_trip_planner__trips",
+          "expect": { "status": 200, "rowCount": 1, "rowsContain": [{ "id": "t1", "status": "planning" }] }
+        }
+      ]
+    },
+    {
+      "name": "personal packing lists: a child sees and writes only their own; an adult sees everyone's",
+      "members": { "parent": "adult", "kidA": "child", "kidB": "child" },
+      "steps": [
+        {
+          "action": "seedRaw",
+          "sql": "INSERT INTO app_trip_planner__trips (id, title, start_date, end_date, created_by, created_at) VALUES ('t1', 'Beach week', '2026-07-01', '2026-07-08', ?, '2026-01-01T00:00:00Z')",
+          "params": ["{{parent}}"]
+        },
+        {
+          "action": "seedRaw",
+          "sql": "INSERT INTO app_trip_planner__packing_items (id, trip_id, member_id, label, created_at) VALUES ('p-a', 't1', ?, 'Swimsuit', '2026-01-02T00:00:00Z'), ('p-b', 't1', ?, 'Diary', '2026-01-02T00:00:00Z')",
+          "params": ["{{kidA}}", "{{kidB}}"]
+        },
+        {
+          "action": "db",
+          "as": "kidA",
+          "sql": "SELECT id FROM app_trip_planner__packing_items",
+          "expect": { "status": 200, "rowCount": 1, "rowsContain": [{ "id": "p-a" }] }
+        },
+        {
+          "action": "db",
+          "as": "kidA",
+          "sql": "UPDATE app_trip_planner__packing_items SET checked = 1 WHERE id = 'p-b'"
+        },
+        {
+          "action": "db",
+          "as": "kidA",
+          "sql": "INSERT INTO app_trip_planner__packing_items (id, trip_id, member_id, label, created_at) VALUES (?, ?, ?, ?, ?)",
+          "params": ["p-forged", "t1", "{{kidB}}", "Planted item", "2026-01-03T00:00:00Z"],
+          "expect": { "status": 200 }
+        },
+        {
+          "action": "db",
+          "as": "kidB",
+          "sql": "SELECT id, checked FROM app_trip_planner__packing_items",
+          "expect": { "status": 200, "rowCount": 1, "rowsContain": [{ "id": "p-b", "checked": 0 }] }
+        },
+        {
+          "action": "db",
+          "as": "parent",
+          "sql": "SELECT id FROM app_trip_planner__packing_items",
+          "expect": { "status": 200, "rowCount": 3 }
+        }
+      ]
+    },
+    {
+      "name": "a member is on a trip at most once",
+      "members": { "parent": "adult", "kid": "child" },
+      "steps": [
+        {
+          "action": "seedRaw",
+          "sql": "INSERT INTO app_trip_planner__trips (id, title, start_date, end_date, created_by, created_at) VALUES ('t1', 'Beach week', '2026-07-01', '2026-07-08', ?, '2026-01-01T00:00:00Z')",
+          "params": ["{{parent}}"]
+        },
+        {
+          "action": "db",
+          "as": "parent",
+          "sql": "INSERT INTO app_trip_planner__trip_members (id, trip_id, member_id, added_at) VALUES (?, ?, ?, ?)",
+          "params": ["tm1", "t1", "{{kid}}", "2026-01-01T00:00:00Z"],
+          "expect": { "status": 200 }
+        },
+        {
+          "action": "db",
+          "as": "parent",
+          "sql": "INSERT INTO app_trip_planner__trip_members (id, trip_id, member_id, added_at) VALUES (?, ?, ?, ?)",
+          "params": ["tm2", "t1", "{{kid}}", "2026-01-02T00:00:00Z"],
+          "expect": { "status": 400 }
+        },
+        {
+          "action": "db",
+          "as": "parent",
+          "sql": "SELECT id FROM app_trip_planner__trip_members",
+          "expect": { "status": 200, "rowCount": 1, "rowsContain": [{ "id": "tm1" }] }
+        }
+      ]
+    },
+    {
+      "name": "upcoming_trips excludes trips that have ended or were cancelled",
+      "members": { "parent": "adult" },
+      "steps": [
+        {
+          "action": "seedRaw",
+          "sql": "INSERT INTO app_trip_planner__trips (id, title, start_date, end_date, status, created_by, created_at) VALUES ('t-future', 'Alaska cruise', '2099-06-01', '2099-06-10', 'planning', ?, '2026-01-01T00:00:00Z'), ('t-cancelled', 'Paris', '2099-09-01', '2099-09-05', 'cancelled', ?, '2026-01-01T00:00:00Z'), ('t-past', 'Old trip', '2020-01-01', '2020-01-05', 'planning', ?, '2026-01-01T00:00:00Z')",
+          "params": ["{{parent}}", "{{parent}}", "{{parent}}"]
+        },
+        {
+          "action": "named",
+          "as": "parent",
+          "kind": "query",
+          "name": "upcoming_trips",
+          "expect": { "status": 200, "rowCount": 1, "rowsContain": [{ "id": "t-future" }] }
+        },
+        {
+          "action": "named",
+          "as": "parent",
+          "kind": "query",
+          "name": "all_trips",
+          "expect": { "status": 200, "rowCount": 3 }
+        }
+      ]
+    },
+    {
+      "name": "only an adult may announce a new trip",
+      "members": { "parent": "adult", "kid": "child" },
+      "steps": [
+        {
+          "action": "publish",
+          "as": "kid",
+          "type": "trip.created",
+          "subject_id": "t1",
+          "payload": { "title": "Disney", "destination": "Orlando", "start_date": "2026-08-01", "end_date": "2026-08-05" },
+          "expect": { "status": 403 }
+        },
+        {
+          "action": "publish",
+          "as": "parent",
+          "type": "trip.created",
+          "subject_id": "t1",
+          "payload": { "title": "Beach week", "destination": "Outer Banks", "start_date": "2026-07-01", "end_date": "2026-07-08" },
+          "expect": { "status": 201 }
+        }
+      ]
+    }
+  ]
+}
