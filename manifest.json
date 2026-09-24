@@ -44,8 +44,8 @@
       "params": {
         "created_by": { "type": "member", "label": "Planned by", "required": true },
         "title": { "type": "text", "label": "Trip name", "required": true },
-        "start_date": { "type": "text", "label": "Start date (YYYY-MM-DD)", "required": true },
-        "end_date": { "type": "text", "label": "End date (YYYY-MM-DD)", "required": true },
+        "start_date": { "type": "text", "format": "date", "label": "Start date (YYYY-MM-DD)", "required": true },
+        "end_date": { "type": "text", "format": "date", "label": "End date (YYYY-MM-DD)", "required": true },
         "destination": { "type": "text", "label": "Where", "default": "" }
       },
       "dedupe": { "table": "trips", "column": "source_event_id" },
