@@ -79,6 +79,54 @@
       "kind": "adult_writable"
     }
   },
+  "shareable": {
+    "trip": {
+      "table": "trips",
+      "title_column": "title",
+      "columns": [
+        { "column": "destination", "label": "Where" },
+        { "column": "start_date", "label": "From", "format": "date" },
+        { "column": "end_date", "label": "Until", "format": "date" },
+        {
+          "column": "status",
+          "label": "Status",
+          "value_labels": {
+            "planning": "Planning",
+            "confirmed": "Confirmed",
+            "completed": "Completed",
+            "cancelled": "Cancelled"
+          }
+        }
+      ],
+      "feed": {
+        "label": "Itinerary",
+        "table": "itinerary_items",
+        "fk_column": "trip_id",
+        "columns": [
+          { "column": "title", "label": "Plan", "role": "heading" },
+          { "column": "item_date", "label": "Day", "format": "date", "role": "detail" },
+          { "column": "time", "label": "Time", "role": "detail" },
+          {
+            "column": "category",
+            "label": "Type",
+            "role": "detail",
+            "value_labels": {
+              "transport": "Transport",
+              "accommodation": "Accommodation",
+              "activity": "Activity",
+              "restaurant": "Restaurant",
+              "other": "Other"
+            }
+          },
+          { "column": "description", "label": "Details", "format": "multiline", "role": "body" }
+        ],
+        "order_column": "item_date",
+        "order": "oldest",
+        "max_items": 200,
+        "empty_text": "Nothing on the itinerary yet."
+      }
+    }
+  },
   "store_acls": {
     "calendar_events": {
       "write": { "require_role": "adult" }

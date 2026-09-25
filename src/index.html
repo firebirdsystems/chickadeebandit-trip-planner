@@ -284,8 +284,10 @@
   <script type="module">
     import {
       hubAlert, esc, isAdult, memberColor, initial,
-      hubConfirm, createFilesHelper, crossWrite, searchMatch, logHubActivity, hubToday
+      hubConfirm, createFilesHelper, crossWrite, searchMatch, logHubActivity, hubToday,
+      createShareHelper, activeShareLinks, SHARE_EXPIRY_CHOICES, DEFAULT_SHARE_EXPIRY_HOURS,
     } from "/hub-sdk.js";
+    import { createShareUi, createOverlayView } from "./share.js";
     import {
       CAT_ICONS, STATUS_LABELS,
       nightCount, dateRange, dayLabel, formatDateRange,
@@ -318,6 +320,30 @@ async function publishEvent(type, subjectId, payload = {}) {
     const APP_ID  = window.__APP_ID       ?? "trip-planner";
 
     const filesHelper = createFilesHelper(FILES);
+
+    // External share links (manifest.shareable.trip): a read-only page with the
+    // trip's dates and itinerary for someone outside the household — the
+    // grandparents, the house-sitter. The hub injects these URLs only when the
+    // manifest declares `shareable`, and mints for adults only.
+    const share = createShareHelper(window.__SHARE_CREATE_URL, window.__SHARE_REVOKE_URL, window.__SHARE_LIST_URL);
+    const shareView = createOverlayView(document);
+    const shareUi = createShareUi({
+      share,
+      itemType: "trip",
+      noun: "trip",
+      scopeHtml: () => "The page shows the trip’s destination, dates and status, and each itinerary item’s day, time, type and details. Trip notes, booking links, confirmation codes, packing lists and documents stay in the household.",
+      esc,
+      confirm: (message, opts) => hubConfirm({ message, ...opts, destructive: true }),
+      writeText: (text) => navigator.clipboard.writeText(text),
+      activeLinks: activeShareLinks,
+      expiryChoices: SHARE_EXPIRY_CHOICES,
+      defaultExpiryHours: DEFAULT_SHARE_EXPIRY_HOURS,
+      getMe: () => ME,
+      isAdmin: () => window.__IS_ADMIN === true,
+      memberName: (id) => memberMap.get(id)?.name ?? "",
+      view: shareView,
+    });
+    shareView.bind(shareUi);
 
     // ── State ────────────────────────────────────────────────────────────────
     let members        = [];
@@ -576,7 +602,10 @@ let searchQ = "";       // in-app search (see logic.js searchableFields)
         <div class="page">
           <div class="back-bar">
             <button class="btn-back" onclick="window._goBack()">← Trips</button>
-            ${isAdmin ? `<button class="btn-ghost btn-sm" onclick="window._editTrip()">Edit</button>` : ""}
+            <div style="display:flex;gap:6px">
+              ${share.enabled && ME && isAdult(ME) ? `<button class="btn-ghost btn-sm" onclick="window._shareTrip()" data-testid="trip-share">Share</button>` : ""}
+              ${isAdmin ? `<button class="btn-ghost btn-sm" onclick="window._editTrip()">Edit</button>` : ""}
+            </div>
           </div>
 
           <div class="trip-header">
@@ -903,6 +932,10 @@ let searchQ = "";       // in-app search (see logic.js searchableFields)
         if (btn) { btn.disabled = false; btn.textContent = "Create trip"; }
         throw e;
       }
+    };
+
+    window._shareTrip = function() {
+      if (currentTrip) shareUi.open({ id: currentTrip.id, title: currentTrip.title });
     };
 
     window._editTrip = function() {
