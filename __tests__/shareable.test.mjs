@@ -64,6 +64,36 @@ describe("shareable.trip", () => {
     expect(manifest.db_plaintext_columns).toContain("item_date");
   });
 
+  // The calendar is the same link served as .ics: one event per dated
+  // itinerary item. Undated items have no day and drop out, which is right for
+  // a calendar. Codes and booking links stay out here too (checked above over
+  // the whole item, calendar included).
+  it("serves each dated itinerary item as a calendar event", () => {
+    expect(item.calendar.title_prefix_from_item).toBe(true);
+    expect(item.calendar.source).toEqual({
+      kind: "rows",
+      table: "itinerary_items",
+      fk_column: "trip_id",
+      date_column: "item_date",
+      start_time_column: "time",
+      title_column: "title",
+      description_column: "description",
+    });
+    expect(manifest.db_plaintext_columns).toContain(item.calendar.source.date_column);
+  });
+
+  // The feed has no status gate, so a cancelled trip's plans stay on a
+  // subscriber's calendar until the link goes; the panel says how to stop it.
+  it("tells the sharer that cancelling does not clear a subscribed calendar", () => {
+    const scope = page.match(/scopeHtml:\s*\(\)\s*=>\s*"([^"]+)"/)?.[1] ?? "";
+    expect(scope).toMatch(/Cancelling the trip does not clear a subscribed calendar; revoke the link/);
+  });
+
+  it("offers the longer calendar expiries and the calendar link in the panel", () => {
+    expect(page).toMatch(/expiryChoices:\s*SHARE_CALENDAR_EXPIRY_CHOICES/);
+    expect(page).toMatch(/calendarUrl:\s*\(link\)\s*=>\s*share\.calendarUrl\(link\)/);
+  });
+
   it("is read-only and is the item type the page mints", () => {
     expect(item.submit).toBeUndefined();
     expect(item.files).toBeUndefined();

@@ -285,7 +285,7 @@
     import {
       hubAlert, esc, isAdult, memberColor, initial,
       hubConfirm, createFilesHelper, crossWrite, searchMatch, logHubActivity, hubToday,
-      createShareHelper, activeShareLinks, SHARE_EXPIRY_CHOICES, DEFAULT_SHARE_EXPIRY_HOURS,
+      createShareHelper, activeShareLinks, SHARE_CALENDAR_EXPIRY_CHOICES, DEFAULT_SHARE_EXPIRY_HOURS,
     } from "/hub-sdk.js";
     import { createShareUi, createOverlayView } from "./share.js";
     import {
@@ -331,13 +331,16 @@ async function publishEvent(type, subjectId, payload = {}) {
       share,
       itemType: "trip",
       noun: "trip",
-      scopeHtml: () => "The page shows the trip’s destination, dates and status, and each itinerary item’s day, time, type and details. Trip notes, booking links, confirmation codes, packing lists and documents stay in the household.",
+      scopeHtml: () => "The page shows the trip’s destination, dates and status, and each itinerary item’s day, time, type and details. The calendar link carries each dated itinerary item with its time and details. Trip notes, booking links, confirmation codes, packing lists and documents stay in the household. Cancelling the trip does not clear a subscribed calendar; revoke the link to stop it.",
       esc,
       confirm: (message, opts) => hubConfirm({ message, ...opts, destructive: true }),
       writeText: (text) => navigator.clipboard.writeText(text),
       activeLinks: activeShareLinks,
-      expiryChoices: SHARE_EXPIRY_CHOICES,
+      // A trip planned months ahead outlasts a month, and a calendar
+      // subscription stops updating when its link expires.
+      expiryChoices: SHARE_CALENDAR_EXPIRY_CHOICES,
       defaultExpiryHours: DEFAULT_SHARE_EXPIRY_HOURS,
+      calendarUrl: (link) => share.calendarUrl(link),
       getMe: () => ME,
       isAdmin: () => window.__IS_ADMIN === true,
       memberName: (id) => memberMap.get(id)?.name ?? "",

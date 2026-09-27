@@ -124,6 +124,18 @@
         "order": "oldest",
         "max_items": 200,
         "empty_text": "Nothing on the itinerary yet."
+      },
+      "calendar": {
+        "title_prefix_from_item": true,
+        "source": {
+          "kind": "rows",
+          "table": "itinerary_items",
+          "fk_column": "trip_id",
+          "date_column": "item_date",
+          "start_time_column": "time",
+          "title_column": "title",
+          "description_column": "description"
+        }
       }
     }
   },
