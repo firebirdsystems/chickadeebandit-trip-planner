@@ -6,6 +6,7 @@ import {
   formatDateRange,
   packingProgress,
   sortItinerary,
+  outsideTripDates,
   safeHttpUrl,
   CAT_ICONS,
   STATUS_LABELS, searchableFields,
@@ -206,5 +207,33 @@ describe("searchableFields", () => {
     const fields = searchableFields({ title: "Half term", destination: "Lisbon", notes: "flights booked", status: "planned" });
     expect(fields).toContain("Lisbon");
     expect(fields).toContain("flights booked");
+  });
+});
+
+// ── outsideTripDates ──────────────────────────────────────────────────────────
+
+describe("outsideTripDates", () => {
+  const items = [
+    { id: "after",  item_date: "2026-07-20", sort_order: 0 },
+    { id: "in",     item_date: "2026-07-12", sort_order: 0 },
+    { id: "first",  item_date: "2026-07-10", sort_order: 0 },
+    { id: "last",   item_date: "2026-07-14", sort_order: 0 },
+    { id: "before", item_date: "2026-07-01", sort_order: 0 },
+    { id: "undated", item_date: null, sort_order: 0 },
+  ];
+
+  it("returns dated items before the start or after the end, in date order", () => {
+    expect(outsideTripDates(items, "2026-07-10", "2026-07-14").map(i => i.id)).toEqual(["before", "after"]);
+  });
+
+  it("keeps both boundary days inside the trip and leaves undated items to Unscheduled", () => {
+    const ids = outsideTripDates(items, "2026-07-10", "2026-07-14").map(i => i.id);
+    expect(ids).not.toContain("first");
+    expect(ids).not.toContain("last");
+    expect(ids).not.toContain("undated");
+  });
+
+  it("is empty when every dated item fits the trip", () => {
+    expect(outsideTripDates(items, "2026-06-01", "2026-08-01")).toEqual([]);
   });
 });

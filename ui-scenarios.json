@@ -1,0 +1,280 @@
+{
+  "scenarios": [
+    {
+      "name": "an adult sees another member's packing list only once that member is on the trip; my progress counts only my own items",
+      "members": {
+        "parent": "adult",
+        "kid": "child"
+      },
+      "steps": [
+        {
+          "action": "seedRaw",
+          "sql": "INSERT INTO app_trip_planner__trips (id, title, destination, start_date, end_date, status, created_by, created_at) VALUES ('t1', 'Beach week', 'Outer Banks', '2099-07-01', '2099-07-03', 'planning', ?, '2026-01-01T00:00:00Z')",
+          "params": [
+            "{{parent}}"
+          ]
+        },
+        {
+          "action": "seedRaw",
+          "sql": "INSERT INTO app_trip_planner__trip_members (id, trip_id, member_id, added_at) VALUES ('tm-parent', 't1', ?, '2026-01-01T00:00:00Z')",
+          "params": [
+            "{{parent}}"
+          ]
+        },
+        {
+          "action": "seedRaw",
+          "sql": "INSERT INTO app_trip_planner__packing_items (id, trip_id, member_id, label, checked, created_at) VALUES ('p-1', 't1', ?, 'Sunscreen', 1, '2026-01-02T00:00:00Z'), ('p-2', 't1', ?, 'Hat', 0, '2026-01-02T00:00:01Z'), ('p-3', 't1', ?, 'Sandals', 0, '2026-01-02T00:00:02Z'), ('p-4', 't1', ?, 'Book', 0, '2026-01-02T00:00:03Z'), ('p-kid', 't1', ?, 'Kid snorkel', 0, '2026-01-02T00:00:04Z')",
+          "params": [
+            "{{parent}}",
+            "{{parent}}",
+            "{{parent}}",
+            "{{parent}}",
+            "{{kid}}"
+          ]
+        },
+        {
+          "action": "seedRaw",
+          "sql": "INSERT INTO app_trip_planner__shared_packing_items (id, trip_id, label, checked, created_at) VALUES ('s-1', 't1', 'Beach umbrella', 1, '2026-01-02T00:00:00Z')"
+        },
+        {
+          "action": "open",
+          "as": "parent"
+        },
+        {
+          "action": "expectVisible",
+          "as": "parent",
+          "selector": "[data-testid=\"trip-card\"][data-trip-id=\"t1\"]"
+        },
+        {
+          "action": "click",
+          "as": "parent",
+          "selector": "[data-testid=\"trip-card\"][data-trip-id=\"t1\"]"
+        },
+        {
+          "action": "expectVisible",
+          "as": "parent",
+          "selector": "[data-testid=\"trip-tab\"][data-tab=\"packing\"]"
+        },
+        {
+          "action": "click",
+          "as": "parent",
+          "selector": "[data-testid=\"trip-tab\"][data-tab=\"packing\"]"
+        },
+        {
+          "action": "expectText",
+          "as": "parent",
+          "selector": "[data-testid=\"pack-section\"][data-list=\"mine\"] [data-testid=\"pack-progress\"]",
+          "text": "25%"
+        },
+        {
+          "action": "expectText",
+          "as": "parent",
+          "selector": "[data-testid=\"pack-section\"][data-list=\"shared\"] [data-testid=\"pack-progress\"]",
+          "text": "100%"
+        },
+        {
+          "action": "expectCount",
+          "as": "parent",
+          "selector": "[data-testid=\"pack-section\"][data-list=\"member\"]",
+          "count": 0
+        },
+        {
+          "action": "expectCount",
+          "as": "parent",
+          "selector": "[data-testid=\"pack-item\"][data-pack-id=\"p-kid\"]",
+          "count": 0
+        },
+        {
+          "action": "seedRaw",
+          "sql": "INSERT INTO app_trip_planner__trip_members (id, trip_id, member_id, added_at) VALUES ('tm-kid', 't1', ?, '2026-01-01T00:00:00Z')",
+          "params": [
+            "{{kid}}"
+          ]
+        },
+        {
+          "action": "reload",
+          "as": "parent"
+        },
+        {
+          "action": "expectVisible",
+          "as": "parent",
+          "selector": "[data-testid=\"trip-card\"][data-trip-id=\"t1\"]"
+        },
+        {
+          "action": "click",
+          "as": "parent",
+          "selector": "[data-testid=\"trip-card\"][data-trip-id=\"t1\"]"
+        },
+        {
+          "action": "expectVisible",
+          "as": "parent",
+          "selector": "[data-testid=\"trip-tab\"][data-tab=\"packing\"]"
+        },
+        {
+          "action": "click",
+          "as": "parent",
+          "selector": "[data-testid=\"trip-tab\"][data-tab=\"packing\"]"
+        },
+        {
+          "action": "expectCount",
+          "as": "parent",
+          "selector": "[data-testid=\"pack-section\"][data-list=\"member\"]",
+          "count": 1
+        },
+        {
+          "action": "expectVisible",
+          "as": "parent",
+          "selector": "[data-testid=\"pack-section\"][data-list=\"member\"] [data-testid=\"pack-item\"][data-pack-id=\"p-kid\"]"
+        },
+        {
+          "action": "expectText",
+          "as": "parent",
+          "selector": "[data-testid=\"pack-section\"][data-list=\"member\"]",
+          "text": "E2E trip-planner-kid's list"
+        },
+        {
+          "action": "expectText",
+          "as": "parent",
+          "selector": "[data-testid=\"pack-section\"][data-list=\"mine\"] [data-testid=\"pack-progress\"]",
+          "text": "25%"
+        }
+      ]
+    },
+    {
+      "name": "itinerary edit controls render for an adult and not for a child; an item lands under its own day; an item left outside the trip's dates still renders, with its controls",
+      "members": {
+        "parent": "adult",
+        "kid": "child"
+      },
+      "steps": [
+        {
+          "action": "seedRaw",
+          "sql": "INSERT INTO app_trip_planner__trips (id, title, destination, start_date, end_date, status, created_by, created_at) VALUES ('t1', 'Beach week', 'Outer Banks', '2099-07-01', '2099-07-03', 'planning', ?, '2026-01-01T00:00:00Z')",
+          "params": [
+            "{{parent}}"
+          ]
+        },
+        {
+          "action": "seedRaw",
+          "sql": "INSERT INTO app_trip_planner__itinerary_items (id, trip_id, item_date, sort_order, title, category, created_by, created_at) VALUES ('i-1', 't1', '2099-07-02', 0, 'Kayak tour', 'activity', ?, '2026-01-02T00:00:00Z')",
+          "params": [
+            "{{parent}}"
+          ]
+        },
+        {
+          "action": "seedRaw",
+          "sql": "INSERT INTO app_trip_planner__itinerary_items (id, trip_id, item_date, sort_order, title, category, created_by, created_at) VALUES ('i-out', 't1', '2099-06-20', 0, 'Airport hotel', 'activity', ?, '2026-01-02T00:00:00Z')",
+          "params": [
+            "{{parent}}"
+          ]
+        },
+        {
+          "action": "open",
+          "as": "kid"
+        },
+        {
+          "action": "expectVisible",
+          "as": "kid",
+          "selector": "[data-testid=\"trip-card\"][data-trip-id=\"t1\"]"
+        },
+        {
+          "action": "click",
+          "as": "kid",
+          "selector": "[data-testid=\"trip-card\"][data-trip-id=\"t1\"]"
+        },
+        {
+          "action": "expectVisible",
+          "as": "kid",
+          "selector": "[data-testid=\"day-section\"][data-date=\"2099-07-02\"] [data-testid=\"itin-item\"][data-item-id=\"i-1\"]"
+        },
+        {
+          "action": "expectCount",
+          "as": "kid",
+          "selector": "[data-testid=\"itin-item\"][data-item-id=\"i-1\"]",
+          "count": 1
+        },
+        {
+          "action": "expectCount",
+          "as": "kid",
+          "selector": "[data-testid=\"day-section\"]",
+          "count": 3
+        },
+        {
+          "action": "expectCount",
+          "as": "kid",
+          "selector": "[data-testid=\"itin-item-actions\"][data-item-id=\"i-1\"]",
+          "count": 0
+        },
+        {
+          "action": "expectCount",
+          "as": "kid",
+          "selector": "[data-testid=\"itin-add\"]",
+          "count": 0
+        },
+        {
+          "action": "expectCount",
+          "as": "kid",
+          "selector": "[data-testid=\"trip-edit\"]",
+          "count": 0
+        },
+        {
+          "action": "open",
+          "as": "parent"
+        },
+        {
+          "action": "expectVisible",
+          "as": "parent",
+          "selector": "[data-testid=\"trip-card\"][data-trip-id=\"t1\"]"
+        },
+        {
+          "action": "click",
+          "as": "parent",
+          "selector": "[data-testid=\"trip-card\"][data-trip-id=\"t1\"]"
+        },
+        {
+          "action": "expectVisible",
+          "as": "parent",
+          "selector": "[data-testid=\"day-section\"][data-date=\"2099-07-02\"] [data-testid=\"itin-item\"][data-item-id=\"i-1\"]"
+        },
+        {
+          "action": "expectVisible",
+          "as": "parent",
+          "selector": "[data-testid=\"itin-item-actions\"][data-item-id=\"i-1\"]"
+        },
+        {
+          "action": "expectCount",
+          "as": "parent",
+          "selector": "[data-testid=\"itin-add\"]",
+          "count": 4
+        },
+        {
+          "action": "expectCount",
+          "as": "parent",
+          "selector": "[data-testid=\"day-section\"]",
+          "count": 4
+        },
+        {
+          "action": "expectVisible",
+          "as": "parent",
+          "selector": "[data-testid=\"trip-edit\"]"
+        },
+        {
+          "action": "expectVisible",
+          "as": "parent",
+          "selector": "[data-testid=\"outside-dates-section\"] [data-testid=\"itin-item\"][data-item-id=\"i-out\"]"
+        },
+        {
+          "action": "expectText",
+          "as": "parent",
+          "selector": "[data-testid=\"outside-dates-section\"] [data-testid=\"itin-item\"][data-item-id=\"i-out\"]",
+          "text": "Airport hotel"
+        },
+        {
+          "action": "expectVisible",
+          "as": "parent",
+          "selector": "[data-testid=\"outside-dates-section\"] [data-testid=\"itin-item-actions\"][data-item-id=\"i-out\"]"
+        }
+      ]
+    }
+  ]
+}

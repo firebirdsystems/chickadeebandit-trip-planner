@@ -291,7 +291,7 @@
     import {
       CAT_ICONS, STATUS_LABELS,
       nightCount, dateRange, dayLabel, formatDateRange,
-      packingProgress, sortItinerary, safeHttpUrl, searchableFields,
+      packingProgress, sortItinerary, outsideTripDates, safeHttpUrl, searchableFields,
     } from "./logic.js";
 
     // ── Runtime globals ──────────────────────────────────────────────────────
@@ -581,7 +581,7 @@ let searchQ = "";       // in-app search (see logic.js searchableFields)
     function tripCard(trip) {
       const nights = nightCount(trip.start_date, trip.end_date);
       return `
-        <div class="card trip-card" onclick="window._openTripById(${jsArg(trip.id)})">
+        <div class="card trip-card" data-testid="trip-card" data-trip-id="${esc(trip.id)}" onclick="window._openTripById(${jsArg(trip.id)})">
           <div class="trip-card-header">
             <div>
               <div class="trip-title">${esc(trip.title)}</div>
@@ -607,7 +607,7 @@ let searchQ = "";       // in-app search (see logic.js searchableFields)
             <button class="btn-back" onclick="window._goBack()">← Trips</button>
             <div style="display:flex;gap:6px">
               ${share.enabled && ME && isAdult(ME) ? `<button class="btn-ghost btn-sm" onclick="window._shareTrip()" data-testid="trip-share">Share</button>` : ""}
-              ${isAdmin ? `<button class="btn-ghost btn-sm" onclick="window._editTrip()">Edit</button>` : ""}
+              ${isAdmin ? `<button class="btn-ghost btn-sm" data-testid="trip-edit" onclick="window._editTrip()">Edit</button>` : ""}
             </div>
           </div>
 
@@ -624,9 +624,9 @@ let searchQ = "";       // in-app search (see logic.js searchableFields)
           </div>
 
           <div class="tabs">
-            <button class="tab${currentTab === "itinerary" ? " active" : ""}" onclick="window._setTab('itinerary')">Itinerary</button>
-            <button class="tab${currentTab === "packing"   ? " active" : ""}" onclick="window._setTab('packing')">Packing</button>
-            <button class="tab${currentTab === "details"   ? " active" : ""}" onclick="window._setTab('details')">Details</button>
+            <button class="tab${currentTab === "itinerary" ? " active" : ""}" data-testid="trip-tab" data-tab="itinerary" onclick="window._setTab('itinerary')">Itinerary</button>
+            <button class="tab${currentTab === "packing"   ? " active" : ""}" data-testid="trip-tab" data-tab="packing" onclick="window._setTab('packing')">Packing</button>
+            <button class="tab${currentTab === "details"   ? " active" : ""}" data-testid="trip-tab" data-tab="details" onclick="window._setTab('details')">Details</button>
           </div>
 
           <div id="tab-content">
@@ -657,41 +657,50 @@ let searchQ = "";       // in-app search (see logic.js searchableFields)
       const dayHtml = dates.map(date => {
         const items = itineraryItems.filter(i => i.item_date === date);
         return `
-          <div class="day-section">
+          <div class="day-section" data-testid="day-section" data-date="${esc(date)}">
             <div class="day-label">${esc(dayLabel(date))}</div>
             ${items.map(itinItemHtml).join("")}
-            ${isAdmin ? `<button class="btn-add" onclick="window._newItem(${jsArg(date)})">+ Add item</button>` : ""}
+            ${isAdmin ? `<button class="btn-add" data-testid="itin-add" data-date="${esc(date)}" onclick="window._newItem(${jsArg(date)})">+ Add item</button>` : ""}
           </div>
         `;
       }).join("");
 
-      const unschHtml = (unscheduled.length > 0 || isAdmin) ? `
-        <div class="day-section">
-          <div class="day-label" style="opacity:0.6">Unscheduled</div>
-          ${unscheduled.map(itinItemHtml).join("")}
-          ${isAdmin ? `<button class="btn-add" onclick="window._newItem(null)">+ Add unscheduled item</button>` : ""}
+      const outside = outsideTripDates(itineraryItems, currentTrip.start_date, currentTrip.end_date);
+      const outsideHtml = outside.length ? `
+        <div class="day-section" data-testid="outside-dates-section">
+          <div class="day-label" style="opacity:0.6">Outside trip dates</div>
+          ${outside.map(i => itinItemHtml(i, { showDate: true })).join("")}
         </div>
       ` : "";
 
-      return `<div class="itinerary">${dayHtml}${unschHtml}</div>`;
+      const unschHtml = (unscheduled.length > 0 || isAdmin) ? `
+        <div class="day-section" data-testid="day-section" data-date="unscheduled">
+          <div class="day-label" style="opacity:0.6">Unscheduled</div>
+          ${unscheduled.map(itinItemHtml).join("")}
+          ${isAdmin ? `<button class="btn-add" data-testid="itin-add" data-date="unscheduled" onclick="window._newItem(null)">+ Add unscheduled item</button>` : ""}
+        </div>
+      ` : "";
+
+      return `<div class="itinerary">${dayHtml}${outsideHtml}${unschHtml}</div>`;
     }
 
-    function itinItemHtml(item) {
+    function itinItemHtml(item, { showDate = false } = {}) {
       const icon    = CAT_ICONS[item.category] ?? "📌";
       const isAdmin = !ME || isAdult(ME);
       const bookingUrl = safeHttpUrl(item.booking_url);
       return `
-        <div class="itin-item">
+        <div class="itin-item" data-testid="itin-item" data-item-id="${esc(item.id)}">
           <span class="item-icon">${icon}</span>
           <div class="item-body">
             <div class="item-title">${esc(item.title)}</div>
-            ${item.time             ? `<div class="item-time">${esc(item.time)}</div>` : ""}
+            ${showDate              ? `<div class="item-time">${esc(dayLabel(item.item_date))}${item.time ? ` · ${esc(item.time)}` : ""}</div>`
+              : item.time           ? `<div class="item-time">${esc(item.time)}</div>` : ""}
             ${item.description      ? `<div class="item-desc">${esc(item.description)}</div>` : ""}
             ${item.confirmation_code ? `<div class="item-conf">Conf: ${esc(item.confirmation_code)}</div>` : ""}
             ${bookingUrl ? `<div class="item-link"><a href="${esc(bookingUrl)}" target="_blank" rel="noopener noreferrer">View booking ↗</a></div>` : ""}
           </div>
           ${isAdmin ? `
-            <div class="item-actions">
+            <div class="item-actions" data-testid="itin-item-actions" data-item-id="${esc(item.id)}">
               <button class="btn-icon" title="Edit" onclick="window._editItem(${jsArg(item.id)})">✏️</button>
               <button class="btn-icon" title="Remove" onclick="window._deleteItem(${jsArg(item.id)})">🗑️</button>
             </div>
@@ -717,10 +726,10 @@ let searchQ = "";       // in-app search (see logic.js searchableFields)
         // A specific member's personal list stays adult-or-owner only.
         const canAdd = !ME || isAdult(ME) || memberId === myId || memberId === null;
         return `
-          <div class="pack-section">
+          <div class="pack-section" data-testid="pack-section" data-list="${memberId === null ? "shared" : memberId === myId ? "mine" : "member"}" data-member-id="${esc(memberId ?? "")}">
             <div class="pack-section-header">
               <span>${esc(title)}</span>
-              ${pct !== null ? `<span class="progress-label">${pct}%</span>` : ""}
+              ${pct !== null ? `<span class="progress-label" data-testid="pack-progress">${pct}%</span>` : ""}
             </div>
             ${items.map(i => packItemHtml(i, myId)).join("")}
             ${items.length === 0 ? `<p class="muted" style="padding:4px 0 6px">Nothing added yet.</p>` : ""}
@@ -748,7 +757,7 @@ let searchQ = "";       // in-app search (see logic.js searchableFields)
       const canDelete = !ME || isAdult(ME) || item.shared || (item.member_id === myId);
       const checkerName = item.checked_by ? (memberMap.get(item.checked_by)?.name ?? item.checked_by) : null;
       return `
-        <div class="pack-item${item.checked ? " is-checked" : ""}">
+        <div class="pack-item${item.checked ? " is-checked" : ""}" data-testid="pack-item" data-pack-id="${esc(item.id)}">
           <button class="checkbox${item.checked ? " is-checked" : ""}${!canToggle ? " readonly" : ""}"
             ${canToggle ? `onclick="window._togglePacking(${jsArg(item.id)})"` : ""}
             aria-label="${item.checked ? "Uncheck" : "Check"}"

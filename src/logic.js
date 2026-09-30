@@ -75,6 +75,16 @@ export function sortItinerary(items) {
   });
 }
 
+/**
+ * Dated items that fall outside the trip's start–end range, in itinerary order.
+ * Shortening a trip leaves these behind; the day-by-day view walks only the
+ * trip's own dates, so without their own section they are never drawn — and
+ * an item that is never drawn cannot be edited or removed.
+ */
+export function outsideTripDates(items, start, end) {
+  return sortItinerary(items.filter(i => i.item_date && (i.item_date < start || i.item_date > end)));
+}
+
 /** Return a normalized web URL, rejecting script and non-web schemes. */
 export function safeHttpUrl(value) {
   if (!value) return null;
