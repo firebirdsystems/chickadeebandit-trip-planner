@@ -18,6 +18,9 @@
     "requires_approval": false
   },
   "storage": "db",
+  "preload": {
+    "trips": {"sql": "SELECT id, title, destination, start_date, end_date, status, notes, created_by, created_at FROM app_trip_planner__trips ORDER BY start_date DESC"}
+  },
   "db_encryption": "off",
   "db_plaintext_columns": ["start_date", "end_date", "item_date"],
   "glance": {
