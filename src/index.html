@@ -219,7 +219,7 @@
 
     /* --- Empty state --- */
     .empty { text-align: center; padding: 60px 16px; }
-    .empty-icon { font-size: 3rem; margin-bottom: 16px; }
+    .empty-icon { margin-bottom: 16px; }
     .empty p { color: var(--hub-text-muted, #6b7280); margin-bottom: 20px; font-size: 0.9rem; }
 
     /* --- Modal --- */
@@ -286,6 +286,7 @@
       hubAlert, esc, isAdult, memberColor, initial,
       hubConfirm, createFilesHelper, crossWrite, searchMatch, logHubActivity, hubToday,
       createShareHelper, activeShareLinks, SHARE_CALENDAR_EXPIRY_CHOICES, DEFAULT_SHARE_EXPIRY_HOURS,
+      glyph, chickadee,
     } from "/hub-sdk.js";
     import { createShareUi, createOverlayView } from "./share.js";
     import {
@@ -333,6 +334,7 @@ async function publishEvent(type, subjectId, payload = {}) {
       noun: "trip",
       scopeHtml: () => "The page shows the trip’s destination, dates and status, and each itinerary item’s day, time, type and details. The calendar link carries each dated itinerary item with its time and details. Trip notes, booking links, confirmation codes, packing lists and documents stay in the household. Cancelling the trip does not clear a subscribed calendar; revoke the link to stop it.",
       esc,
+      glyph,
       confirm: (message, opts) => hubConfirm({ message, ...opts, destructive: true }),
       writeText: (text) => navigator.clipboard.writeText(text),
       activeLinks: activeShareLinks,
@@ -548,19 +550,19 @@ let searchQ = "";       // in-app search (see logic.js searchableFields)
       document.getElementById("app").innerHTML = `
         <div class="page">
           <div class="header">
-            <h1>✈️ Trips</h1>
+            <h1>${glyph("plane")} Trips</h1>
             ${canCreate ? `<button class="btn-primary" onclick="window._newTrip()">+ New trip</button>` : ""}
           </div>
 
           ${trips.length ? `<div class="search-row"><input id="search" class="search-input" type="search" placeholder="Search trips…" aria-label="Search trips" value="${esc(searchQ)}" /></div>` : ""}
           ${matched.length === 0 ? (searchQ ? `
             <div class="empty">
-              <div class="empty-icon">🔍</div>
+              <div class="empty-icon">${chickadee("searching")}</div>
               <p>No trips match "${esc(searchQ)}".</p>
             </div>
           ` : `
             <div class="empty">
-              <div class="empty-icon">🗺️</div>
+              <div class="empty-icon">${chickadee("nest")}</div>
               <p>No trips planned yet.</p>
               ${canCreate ? `<button class="btn-primary" onclick="window._newTrip()">Plan a trip</button>` : ""}
             </div>
@@ -585,7 +587,7 @@ let searchQ = "";       // in-app search (see logic.js searchableFields)
           <div class="trip-card-header">
             <div>
               <div class="trip-title">${esc(trip.title)}</div>
-              ${trip.destination ? `<div class="trip-dest">📍 ${esc(trip.destination)}</div>` : ""}
+              ${trip.destination ? `<div class="trip-dest">${glyph("location")} ${esc(trip.destination)}</div>` : ""}
             </div>
             ${statusBadge(trip.status)}
           </div>
@@ -613,7 +615,7 @@ let searchQ = "";       // in-app search (see logic.js searchableFields)
 
           <div class="trip-header">
             <h2>${esc(t.title)}</h2>
-            ${t.destination ? `<div class="trip-dest">📍 ${esc(t.destination)}</div>` : ""}
+            ${t.destination ? `<div class="trip-dest">${glyph("location")} ${esc(t.destination)}</div>` : ""}
             <div class="trip-header-meta">
               <span>${esc(formatDateRange(t.start_date, t.end_date))}</span>
               <span class="dot">·</span>
@@ -685,7 +687,7 @@ let searchQ = "";       // in-app search (see logic.js searchableFields)
     }
 
     function itinItemHtml(item, { showDate = false } = {}) {
-      const icon    = CAT_ICONS[item.category] ?? "📌";
+      const icon    = glyph(CAT_ICONS[item.category] ?? "pinboard");
       const isAdmin = !ME || isAdult(ME);
       const bookingUrl = safeHttpUrl(item.booking_url);
       return `
@@ -701,8 +703,8 @@ let searchQ = "";       // in-app search (see logic.js searchableFields)
           </div>
           ${isAdmin ? `
             <div class="item-actions" data-testid="itin-item-actions" data-item-id="${esc(item.id)}">
-              <button class="btn-icon" title="Edit" onclick="window._editItem(${jsArg(item.id)})">✏️</button>
-              <button class="btn-icon" title="Remove" onclick="window._deleteItem(${jsArg(item.id)})">🗑️</button>
+              <button class="btn-icon" title="Edit" aria-label="Edit" onclick="window._editItem(${jsArg(item.id)})">${glyph("pencil")}</button>
+              <button class="btn-icon" title="Remove" aria-label="Remove" onclick="window._deleteItem(${jsArg(item.id)})">${glyph("trash")}</button>
             </div>
           ` : ""}
         </div>
@@ -761,7 +763,7 @@ let searchQ = "";       // in-app search (see logic.js searchableFields)
           <button class="checkbox${item.checked ? " is-checked" : ""}${!canToggle ? " readonly" : ""}"
             ${canToggle ? `onclick="window._togglePacking(${jsArg(item.id)})"` : ""}
             aria-label="${item.checked ? "Uncheck" : "Check"}"
-          >${item.checked ? "✓" : ""}</button>
+          >${item.checked ? glyph("tick") : ""}</button>
           <span class="pack-label">${esc(item.label)}</span>
           ${checkerName && item.checked ? `<span class="checked-by">${esc(checkerName)}</span>` : ""}
           ${canDelete ? `<button class="btn-icon-sm" title="Remove" onclick="window._deletePacking(${jsArg(item.id)})">×</button>` : ""}
@@ -776,7 +778,7 @@ let searchQ = "";       // in-app search (see logic.js searchableFields)
 
       const docRows = tripDocs.map(doc => `
         <div class="doc-row">
-          <span class="doc-name">📄 ${esc(doc.title)}</span>
+          <span class="doc-name">${glyph("document")} ${esc(doc.title)}</span>
           <div class="doc-actions">
             ${doc.fileKey ? `<a class="btn-ghost btn-sm" href="${esc(filesHelper.url(doc.fileKey))}" target="_blank" rel="noopener">Download</a>` : ""}
             ${isAdmin ? `<button class="btn-ghost btn-sm" onclick="window._deleteDoc(${jsArg(doc.id)}, ${jsArg(doc.fileKey ?? "")})">Remove</button>` : ""}
@@ -1037,11 +1039,11 @@ let searchQ = "";       // in-app search (see logic.js searchableFields)
           <div class="field">
             <label>Category</label>
             <select id="f-cat">
-              <option value="transport">✈️ Transport</option>
-              <option value="accommodation">🏨 Accommodation</option>
-              <option value="activity">🎭 Activity</option>
-              <option value="restaurant">🍽️ Restaurant</option>
-              <option value="other">📌 Other</option>
+              <option value="transport">Transport</option>
+              <option value="accommodation">Accommodation</option>
+              <option value="activity">Activity</option>
+              <option value="restaurant">Restaurant</option>
+              <option value="other">Other</option>
             </select>
           </div>
           <div class="field">
@@ -1123,7 +1125,7 @@ let searchQ = "";       // in-app search (see logic.js searchableFields)
             <label>Category</label>
             <select id="f-cat">
               ${["transport","accommodation","activity","restaurant","other"].map(c =>
-                `<option value="${c}"${item.category === c ? " selected" : ""}>${CAT_ICONS[c] ?? "📌"} ${c.charAt(0).toUpperCase() + c.slice(1)}</option>`
+                `<option value="${c}"${item.category === c ? " selected" : ""}>${c.charAt(0).toUpperCase() + c.slice(1)}</option>`
               ).join("")}
             </select>
           </div>

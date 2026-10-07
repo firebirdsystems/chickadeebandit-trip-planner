@@ -4,11 +4,11 @@
  */
 
 export const CAT_ICONS = {
-  transport:     "✈️",
-  accommodation: "🏨",
-  activity:      "🎭",
-  restaurant:    "🍽️",
-  other:         "📌",
+  transport:     "plane",
+  accommodation: "house",
+  activity:      "ticket",
+  restaurant:    "cloche",
+  other:         "pinboard",
 };
 
 export const STATUS_LABELS = {
