@@ -1,0 +1,2210 @@
+{
+  "seed": [
+    {
+      "sql": "INSERT INTO app_trip_planner__trips (id, title, destination, start_date, end_date, status, notes, created_by, created_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, strftime('%Y-%m-%dT%H:%M:%fZ','now','-50 days','+0 minutes'))",
+      "params": [
+        "perf-trip-01",
+        "Fall Break at the Lake",
+        "Lake Chelan, WA",
+        "{{date:12}}",
+        "{{date:16}}",
+        "confirmed",
+        "Cabin sleeps six. Check-in after 4pm, key box code is in the email.",
+        "{{me}}"
+      ]
+    },
+    {
+      "sql": "INSERT INTO app_trip_planner__trip_members (id, trip_id, member_id, added_at) VALUES (?, ?, ?, strftime('%Y-%m-%dT%H:%M:%fZ','now','-50 days','+1 minutes'))",
+      "params": [
+        "perf-tm-001",
+        "perf-trip-01",
+        "{{me}}"
+      ]
+    },
+    {
+      "sql": "INSERT INTO app_trip_planner__trip_members (id, trip_id, member_id, added_at) VALUES (?, ?, ?, strftime('%Y-%m-%dT%H:%M:%fZ','now','-50 days','+2 minutes'))",
+      "params": [
+        "perf-tm-002",
+        "perf-trip-01",
+        "{{partner}}"
+      ]
+    },
+    {
+      "sql": "INSERT INTO app_trip_planner__trip_members (id, trip_id, member_id, added_at) VALUES (?, ?, ?, strftime('%Y-%m-%dT%H:%M:%fZ','now','-50 days','+3 minutes'))",
+      "params": [
+        "perf-tm-003",
+        "perf-trip-01",
+        "{{adult2}}"
+      ]
+    },
+    {
+      "sql": "INSERT INTO app_trip_planner__trip_members (id, trip_id, member_id, added_at) VALUES (?, ?, ?, strftime('%Y-%m-%dT%H:%M:%fZ','now','-50 days','+4 minutes'))",
+      "params": [
+        "perf-tm-004",
+        "perf-trip-01",
+        "{{child}}"
+      ]
+    },
+    {
+      "sql": "INSERT INTO app_trip_planner__trip_members (id, trip_id, member_id, added_at) VALUES (?, ?, ?, strftime('%Y-%m-%dT%H:%M:%fZ','now','-50 days','+5 minutes'))",
+      "params": [
+        "perf-tm-005",
+        "perf-trip-01",
+        "{{child2}}"
+      ]
+    },
+    {
+      "sql": "INSERT INTO app_trip_planner__itinerary_items (id, trip_id, item_date, sort_order, time, title, description, category, confirmation_code, created_by, created_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, strftime('%Y-%m-%dT%H:%M:%fZ','now','-49 days','+0 minutes'))",
+      "params": [
+        "perf-it-001",
+        "perf-trip-01",
+        "{{date:12}}",
+        0,
+        "08:00",
+        "Drive out",
+        "Leave by 8 to beat traffic.",
+        "transport",
+        "CNF1007",
+        "{{partner}}"
+      ]
+    },
+    {
+      "sql": "INSERT INTO app_trip_planner__itinerary_items (id, trip_id, item_date, sort_order, time, title, description, category, booking_url, confirmation_code, created_by, created_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, strftime('%Y-%m-%dT%H:%M:%fZ','now','-49 days','+1 minutes'))",
+      "params": [
+        "perf-it-002",
+        "perf-trip-01",
+        "{{date:12}}",
+        1,
+        "16:00",
+        "Check in",
+        "Confirmation is in the shared inbox.",
+        "accommodation",
+        "https://example.com/booking/2",
+        "CNF1014",
+        "{{me}}"
+      ]
+    },
+    {
+      "sql": "INSERT INTO app_trip_planner__itinerary_items (id, trip_id, item_date, sort_order, time, title, description, category, booking_url, created_by, created_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, strftime('%Y-%m-%dT%H:%M:%fZ','now','-49 days','+2 minutes'))",
+      "params": [
+        "perf-it-003",
+        "perf-trip-01",
+        "{{date:13}}",
+        2,
+        "18:30",
+        "Dinner in town",
+        "Booked for the whole group.",
+        "restaurant",
+        "https://example.com/booking/3",
+        "{{me}}"
+      ]
+    },
+    {
+      "sql": "INSERT INTO app_trip_planner__itinerary_items (id, trip_id, item_date, sort_order, time, title, description, category, created_by, created_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, strftime('%Y-%m-%dT%H:%M:%fZ','now','-49 days','+3 minutes'))",
+      "params": [
+        "perf-it-004",
+        "perf-trip-01",
+        "{{date:14}}",
+        3,
+        "09:30",
+        "Morning hike",
+        "Easy loop, about two hours.",
+        "activity",
+        "{{partner}}"
+      ]
+    },
+    {
+      "sql": "INSERT INTO app_trip_planner__itinerary_items (id, trip_id, item_date, sort_order, time, title, description, category, created_by, created_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, strftime('%Y-%m-%dT%H:%M:%fZ','now','-49 days','+4 minutes'))",
+      "params": [
+        "perf-it-005",
+        "perf-trip-01",
+        "{{date:14}}",
+        4,
+        "13:00",
+        "Afternoon on the water",
+        "Kayaks are first come first served.",
+        "activity",
+        "{{me}}"
+      ]
+    },
+    {
+      "sql": "INSERT INTO app_trip_planner__itinerary_items (id, trip_id, item_date, sort_order, time, title, description, category, booking_url, created_by, created_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, strftime('%Y-%m-%dT%H:%M:%fZ','now','-49 days','+5 minutes'))",
+      "params": [
+        "perf-it-006",
+        "perf-trip-01",
+        "{{date:15}}",
+        5,
+        "08:30",
+        "Pancake breakfast",
+        "The place with the long line. Worth it.",
+        "restaurant",
+        "https://example.com/booking/6",
+        "{{me}}"
+      ]
+    },
+    {
+      "sql": "INSERT INTO app_trip_planner__itinerary_items (id, trip_id, item_date, sort_order, time, title, description, category, confirmation_code, created_by, created_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, strftime('%Y-%m-%dT%H:%M:%fZ','now','-49 days','+6 minutes'))",
+      "params": [
+        "perf-it-007",
+        "perf-trip-01",
+        "{{date:16}}",
+        6,
+        "11:00",
+        "Head home",
+        "Check out by 11.",
+        "transport",
+        "CNF1049",
+        "{{partner}}"
+      ]
+    },
+    {
+      "sql": "INSERT INTO app_trip_planner__packing_items (id, trip_id, member_id, label, checked, checked_by, checked_at, created_at) VALUES (?, ?, ?, ?, ?, ?, strftime('%Y-%m-%dT%H:%M:%fZ','now','-2 days','+0 minutes'), strftime('%Y-%m-%dT%H:%M:%fZ','now','-48 days','+0 minutes'))",
+      "params": [
+        "perf-pk-001",
+        "perf-trip-01",
+        "{{me}}",
+        "Passport and wallet",
+        1,
+        "{{me}}"
+      ]
+    },
+    {
+      "sql": "INSERT INTO app_trip_planner__packing_items (id, trip_id, member_id, label, checked, created_at) VALUES (?, ?, ?, ?, ?, strftime('%Y-%m-%dT%H:%M:%fZ','now','-48 days','+1 minutes'))",
+      "params": [
+        "perf-pk-002",
+        "perf-trip-01",
+        "{{me}}",
+        "Phone charger",
+        0
+      ]
+    },
+    {
+      "sql": "INSERT INTO app_trip_planner__packing_items (id, trip_id, member_id, label, checked, checked_by, checked_at, created_at) VALUES (?, ?, ?, ?, ?, ?, strftime('%Y-%m-%dT%H:%M:%fZ','now','-2 days','+2 minutes'), strftime('%Y-%m-%dT%H:%M:%fZ','now','-48 days','+2 minutes'))",
+      "params": [
+        "perf-pk-003",
+        "perf-trip-01",
+        "{{me}}",
+        "Hiking boots",
+        1,
+        "{{me}}"
+      ]
+    },
+    {
+      "sql": "INSERT INTO app_trip_planner__packing_items (id, trip_id, member_id, label, checked, created_at) VALUES (?, ?, ?, ?, ?, strftime('%Y-%m-%dT%H:%M:%fZ','now','-48 days','+3 minutes'))",
+      "params": [
+        "perf-pk-004",
+        "perf-trip-01",
+        "{{me}}",
+        "Rain jacket",
+        0
+      ]
+    },
+    {
+      "sql": "INSERT INTO app_trip_planner__packing_items (id, trip_id, member_id, label, checked, checked_by, checked_at, created_at) VALUES (?, ?, ?, ?, ?, ?, strftime('%Y-%m-%dT%H:%M:%fZ','now','-2 days','+0 minutes'), strftime('%Y-%m-%dT%H:%M:%fZ','now','-48 days','+0 minutes'))",
+      "params": [
+        "perf-pk-005",
+        "perf-trip-01",
+        "{{partner}}",
+        "Toiletries bag",
+        1,
+        "{{partner}}"
+      ]
+    },
+    {
+      "sql": "INSERT INTO app_trip_planner__packing_items (id, trip_id, member_id, label, checked, created_at) VALUES (?, ?, ?, ?, ?, strftime('%Y-%m-%dT%H:%M:%fZ','now','-48 days','+1 minutes'))",
+      "params": [
+        "perf-pk-006",
+        "perf-trip-01",
+        "{{partner}}",
+        "Camera",
+        0
+      ]
+    },
+    {
+      "sql": "INSERT INTO app_trip_planner__packing_items (id, trip_id, member_id, label, checked, checked_by, checked_at, created_at) VALUES (?, ?, ?, ?, ?, ?, strftime('%Y-%m-%dT%H:%M:%fZ','now','-2 days','+2 minutes'), strftime('%Y-%m-%dT%H:%M:%fZ','now','-48 days','+2 minutes'))",
+      "params": [
+        "perf-pk-007",
+        "perf-trip-01",
+        "{{partner}}",
+        "Swimsuit",
+        1,
+        "{{partner}}"
+      ]
+    },
+    {
+      "sql": "INSERT INTO app_trip_planner__packing_items (id, trip_id, member_id, label, checked, created_at) VALUES (?, ?, ?, ?, ?, strftime('%Y-%m-%dT%H:%M:%fZ','now','-48 days','+3 minutes'))",
+      "params": [
+        "perf-pk-008",
+        "perf-trip-01",
+        "{{partner}}",
+        "Travel pillow",
+        0
+      ]
+    },
+    {
+      "sql": "INSERT INTO app_trip_planner__packing_items (id, trip_id, member_id, label, checked, checked_by, checked_at, created_at) VALUES (?, ?, ?, ?, ?, ?, strftime('%Y-%m-%dT%H:%M:%fZ','now','-2 days','+0 minutes'), strftime('%Y-%m-%dT%H:%M:%fZ','now','-48 days','+0 minutes'))",
+      "params": [
+        "perf-pk-009",
+        "perf-trip-01",
+        "{{adult2}}",
+        "Guitar",
+        1,
+        "{{adult2}}"
+      ]
+    },
+    {
+      "sql": "INSERT INTO app_trip_planner__packing_items (id, trip_id, member_id, label, checked, created_at) VALUES (?, ?, ?, ?, ?, strftime('%Y-%m-%dT%H:%M:%fZ','now','-48 days','+1 minutes'))",
+      "params": [
+        "perf-pk-010",
+        "perf-trip-01",
+        "{{adult2}}",
+        "Sleeping bag",
+        0
+      ]
+    },
+    {
+      "sql": "INSERT INTO app_trip_planner__packing_items (id, trip_id, member_id, label, checked, checked_by, checked_at, created_at) VALUES (?, ?, ?, ?, ?, ?, strftime('%Y-%m-%dT%H:%M:%fZ','now','-2 days','+2 minutes'), strftime('%Y-%m-%dT%H:%M:%fZ','now','-48 days','+2 minutes'))",
+      "params": [
+        "perf-pk-011",
+        "perf-trip-01",
+        "{{adult2}}",
+        "Board games",
+        1,
+        "{{adult2}}"
+      ]
+    },
+    {
+      "sql": "INSERT INTO app_trip_planner__packing_items (id, trip_id, member_id, label, checked, checked_by, checked_at, created_at) VALUES (?, ?, ?, ?, ?, ?, strftime('%Y-%m-%dT%H:%M:%fZ','now','-2 days','+0 minutes'), strftime('%Y-%m-%dT%H:%M:%fZ','now','-48 days','+0 minutes'))",
+      "params": [
+        "perf-pk-012",
+        "perf-trip-01",
+        "{{child}}",
+        "Stuffed dinosaur",
+        1,
+        "{{child}}"
+      ]
+    },
+    {
+      "sql": "INSERT INTO app_trip_planner__packing_items (id, trip_id, member_id, label, checked, created_at) VALUES (?, ?, ?, ?, ?, strftime('%Y-%m-%dT%H:%M:%fZ','now','-48 days','+1 minutes'))",
+      "params": [
+        "perf-pk-013",
+        "perf-trip-01",
+        "{{child}}",
+        "Tablet and headphones",
+        0
+      ]
+    },
+    {
+      "sql": "INSERT INTO app_trip_planner__packing_items (id, trip_id, member_id, label, checked, checked_by, checked_at, created_at) VALUES (?, ?, ?, ?, ?, ?, strftime('%Y-%m-%dT%H:%M:%fZ','now','-2 days','+2 minutes'), strftime('%Y-%m-%dT%H:%M:%fZ','now','-48 days','+2 minutes'))",
+      "params": [
+        "perf-pk-014",
+        "perf-trip-01",
+        "{{child}}",
+        "Swim goggles",
+        1,
+        "{{child}}"
+      ]
+    },
+    {
+      "sql": "INSERT INTO app_trip_planner__packing_items (id, trip_id, member_id, label, checked, created_at) VALUES (?, ?, ?, ?, ?, strftime('%Y-%m-%dT%H:%M:%fZ','now','-48 days','+3 minutes'))",
+      "params": [
+        "perf-pk-015",
+        "perf-trip-01",
+        "{{child}}",
+        "Pyjamas",
+        0
+      ]
+    },
+    {
+      "sql": "INSERT INTO app_trip_planner__packing_items (id, trip_id, member_id, label, checked, checked_by, checked_at, created_at) VALUES (?, ?, ?, ?, ?, ?, strftime('%Y-%m-%dT%H:%M:%fZ','now','-2 days','+0 minutes'), strftime('%Y-%m-%dT%H:%M:%fZ','now','-48 days','+0 minutes'))",
+      "params": [
+        "perf-pk-016",
+        "perf-trip-01",
+        "{{child2}}",
+        "Colouring books",
+        1,
+        "{{child2}}"
+      ]
+    },
+    {
+      "sql": "INSERT INTO app_trip_planner__packing_items (id, trip_id, member_id, label, checked, created_at) VALUES (?, ?, ?, ?, ?, strftime('%Y-%m-%dT%H:%M:%fZ','now','-48 days','+1 minutes'))",
+      "params": [
+        "perf-pk-017",
+        "perf-trip-01",
+        "{{child2}}",
+        "Favourite blanket",
+        0
+      ]
+    },
+    {
+      "sql": "INSERT INTO app_trip_planner__packing_items (id, trip_id, member_id, label, checked, checked_by, checked_at, created_at) VALUES (?, ?, ?, ?, ?, ?, strftime('%Y-%m-%dT%H:%M:%fZ','now','-2 days','+2 minutes'), strftime('%Y-%m-%dT%H:%M:%fZ','now','-48 days','+2 minutes'))",
+      "params": [
+        "perf-pk-018",
+        "perf-trip-01",
+        "{{child2}}",
+        "Water bottle",
+        1,
+        "{{child2}}"
+      ]
+    },
+    {
+      "sql": "INSERT INTO app_trip_planner__packing_items (id, trip_id, member_id, label, checked, created_at) VALUES (?, ?, ?, ?, ?, strftime('%Y-%m-%dT%H:%M:%fZ','now','-48 days','+3 minutes'))",
+      "params": [
+        "perf-pk-019",
+        "perf-trip-01",
+        "{{child2}}",
+        "Sneakers",
+        0
+      ]
+    },
+    {
+      "sql": "INSERT INTO app_trip_planner__shared_packing_items (id, trip_id, label, checked, checked_by, checked_at, created_at) VALUES (?, ?, ?, ?, ?, strftime('%Y-%m-%dT%H:%M:%fZ','now','-2 days','+0 minutes'), strftime('%Y-%m-%dT%H:%M:%fZ','now','-48 days','+0 minutes'))",
+      "params": [
+        "perf-sp-001",
+        "perf-trip-01",
+        "First aid kit",
+        1,
+        "{{me}}"
+      ]
+    },
+    {
+      "sql": "INSERT INTO app_trip_planner__shared_packing_items (id, trip_id, label, checked, created_at) VALUES (?, ?, ?, ?, strftime('%Y-%m-%dT%H:%M:%fZ','now','-48 days','+1 minutes'))",
+      "params": [
+        "perf-sp-002",
+        "perf-trip-01",
+        "Cooler",
+        0
+      ]
+    },
+    {
+      "sql": "INSERT INTO app_trip_planner__shared_packing_items (id, trip_id, label, checked, created_at) VALUES (?, ?, ?, ?, strftime('%Y-%m-%dT%H:%M:%fZ','now','-48 days','+2 minutes'))",
+      "params": [
+        "perf-sp-003",
+        "perf-trip-01",
+        "Beach umbrella",
+        0
+      ]
+    },
+    {
+      "sql": "INSERT INTO app_trip_planner__shared_packing_items (id, trip_id, label, checked, created_at) VALUES (?, ?, ?, ?, strftime('%Y-%m-%dT%H:%M:%fZ','now','-48 days','+3 minutes'))",
+      "params": [
+        "perf-sp-004",
+        "perf-trip-01",
+        "Car snacks",
+        0
+      ]
+    },
+    {
+      "sql": "INSERT INTO app_trip_planner__trips (id, title, destination, start_date, end_date, status, notes, created_by, created_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, strftime('%Y-%m-%dT%H:%M:%fZ','now','-35 days','+1 minutes'))",
+      "params": [
+        "perf-trip-02",
+        "Thanksgiving with Grandma",
+        "Portland, OR",
+        "{{date:46}}",
+        "{{date:50}}",
+        "confirmed",
+        "Driving down Wednesday. We are bringing the pies.",
+        "{{partner}}"
+      ]
+    },
+    {
+      "sql": "INSERT INTO app_trip_planner__trip_members (id, trip_id, member_id, added_at) VALUES (?, ?, ?, strftime('%Y-%m-%dT%H:%M:%fZ','now','-35 days','+2 minutes'))",
+      "params": [
+        "perf-tm-006",
+        "perf-trip-02",
+        "{{me}}"
+      ]
+    },
+    {
+      "sql": "INSERT INTO app_trip_planner__trip_members (id, trip_id, member_id, added_at) VALUES (?, ?, ?, strftime('%Y-%m-%dT%H:%M:%fZ','now','-35 days','+3 minutes'))",
+      "params": [
+        "perf-tm-007",
+        "perf-trip-02",
+        "{{partner}}"
+      ]
+    },
+    {
+      "sql": "INSERT INTO app_trip_planner__trip_members (id, trip_id, member_id, added_at) VALUES (?, ?, ?, strftime('%Y-%m-%dT%H:%M:%fZ','now','-35 days','+4 minutes'))",
+      "params": [
+        "perf-tm-008",
+        "perf-trip-02",
+        "{{child}}"
+      ]
+    },
+    {
+      "sql": "INSERT INTO app_trip_planner__trip_members (id, trip_id, member_id, added_at) VALUES (?, ?, ?, strftime('%Y-%m-%dT%H:%M:%fZ','now','-35 days','+5 minutes'))",
+      "params": [
+        "perf-tm-009",
+        "perf-trip-02",
+        "{{child2}}"
+      ]
+    },
+    {
+      "sql": "INSERT INTO app_trip_planner__itinerary_items (id, trip_id, item_date, sort_order, time, title, description, category, confirmation_code, created_by, created_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, strftime('%Y-%m-%dT%H:%M:%fZ','now','-34 days','+0 minutes'))",
+      "params": [
+        "perf-it-008",
+        "perf-trip-02",
+        "{{date:46}}",
+        0,
+        "08:00",
+        "Drive out",
+        "Leave by 8 to beat traffic.",
+        "transport",
+        "CNF1056",
+        "{{me}}"
+      ]
+    },
+    {
+      "sql": "INSERT INTO app_trip_planner__itinerary_items (id, trip_id, item_date, sort_order, time, title, description, category, booking_url, confirmation_code, created_by, created_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, strftime('%Y-%m-%dT%H:%M:%fZ','now','-34 days','+1 minutes'))",
+      "params": [
+        "perf-it-009",
+        "perf-trip-02",
+        "{{date:46}}",
+        1,
+        "16:00",
+        "Check in",
+        "Confirmation is in the shared inbox.",
+        "accommodation",
+        "https://example.com/booking/9",
+        "CNF1063",
+        "{{partner}}"
+      ]
+    },
+    {
+      "sql": "INSERT INTO app_trip_planner__itinerary_items (id, trip_id, item_date, sort_order, time, title, description, category, booking_url, created_by, created_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, strftime('%Y-%m-%dT%H:%M:%fZ','now','-34 days','+2 minutes'))",
+      "params": [
+        "perf-it-010",
+        "perf-trip-02",
+        "{{date:47}}",
+        2,
+        "18:30",
+        "Dinner in town",
+        "Booked for the whole group.",
+        "restaurant",
+        "https://example.com/booking/10",
+        "{{partner}}"
+      ]
+    },
+    {
+      "sql": "INSERT INTO app_trip_planner__itinerary_items (id, trip_id, item_date, sort_order, time, title, description, category, created_by, created_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, strftime('%Y-%m-%dT%H:%M:%fZ','now','-34 days','+3 minutes'))",
+      "params": [
+        "perf-it-011",
+        "perf-trip-02",
+        "{{date:48}}",
+        3,
+        "09:30",
+        "Morning hike",
+        "Easy loop, about two hours.",
+        "activity",
+        "{{me}}"
+      ]
+    },
+    {
+      "sql": "INSERT INTO app_trip_planner__itinerary_items (id, trip_id, item_date, sort_order, time, title, description, category, created_by, created_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, strftime('%Y-%m-%dT%H:%M:%fZ','now','-34 days','+4 minutes'))",
+      "params": [
+        "perf-it-012",
+        "perf-trip-02",
+        "{{date:48}}",
+        4,
+        "13:00",
+        "Afternoon on the water",
+        "Kayaks are first come first served.",
+        "activity",
+        "{{partner}}"
+      ]
+    },
+    {
+      "sql": "INSERT INTO app_trip_planner__itinerary_items (id, trip_id, item_date, sort_order, time, title, description, category, booking_url, created_by, created_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, strftime('%Y-%m-%dT%H:%M:%fZ','now','-34 days','+5 minutes'))",
+      "params": [
+        "perf-it-013",
+        "perf-trip-02",
+        "{{date:49}}",
+        5,
+        "08:30",
+        "Pancake breakfast",
+        "The place with the long line. Worth it.",
+        "restaurant",
+        "https://example.com/booking/13",
+        "{{partner}}"
+      ]
+    },
+    {
+      "sql": "INSERT INTO app_trip_planner__itinerary_items (id, trip_id, item_date, sort_order, time, title, description, category, confirmation_code, created_by, created_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, strftime('%Y-%m-%dT%H:%M:%fZ','now','-34 days','+6 minutes'))",
+      "params": [
+        "perf-it-014",
+        "perf-trip-02",
+        "{{date:50}}",
+        6,
+        "11:00",
+        "Head home",
+        "Check out by 11.",
+        "transport",
+        "CNF1098",
+        "{{me}}"
+      ]
+    },
+    {
+      "sql": "INSERT INTO app_trip_planner__packing_items (id, trip_id, member_id, label, checked, checked_by, checked_at, created_at) VALUES (?, ?, ?, ?, ?, ?, strftime('%Y-%m-%dT%H:%M:%fZ','now','-2 days','+0 minutes'), strftime('%Y-%m-%dT%H:%M:%fZ','now','-33 days','+0 minutes'))",
+      "params": [
+        "perf-pk-020",
+        "perf-trip-02",
+        "{{me}}",
+        "Passport and wallet",
+        1,
+        "{{me}}"
+      ]
+    },
+    {
+      "sql": "INSERT INTO app_trip_planner__packing_items (id, trip_id, member_id, label, checked, created_at) VALUES (?, ?, ?, ?, ?, strftime('%Y-%m-%dT%H:%M:%fZ','now','-33 days','+1 minutes'))",
+      "params": [
+        "perf-pk-021",
+        "perf-trip-02",
+        "{{me}}",
+        "Phone charger",
+        0
+      ]
+    },
+    {
+      "sql": "INSERT INTO app_trip_planner__packing_items (id, trip_id, member_id, label, checked, checked_by, checked_at, created_at) VALUES (?, ?, ?, ?, ?, ?, strftime('%Y-%m-%dT%H:%M:%fZ','now','-2 days','+2 minutes'), strftime('%Y-%m-%dT%H:%M:%fZ','now','-33 days','+2 minutes'))",
+      "params": [
+        "perf-pk-022",
+        "perf-trip-02",
+        "{{me}}",
+        "Hiking boots",
+        1,
+        "{{me}}"
+      ]
+    },
+    {
+      "sql": "INSERT INTO app_trip_planner__packing_items (id, trip_id, member_id, label, checked, created_at) VALUES (?, ?, ?, ?, ?, strftime('%Y-%m-%dT%H:%M:%fZ','now','-33 days','+3 minutes'))",
+      "params": [
+        "perf-pk-023",
+        "perf-trip-02",
+        "{{me}}",
+        "Rain jacket",
+        0
+      ]
+    },
+    {
+      "sql": "INSERT INTO app_trip_planner__packing_items (id, trip_id, member_id, label, checked, checked_by, checked_at, created_at) VALUES (?, ?, ?, ?, ?, ?, strftime('%Y-%m-%dT%H:%M:%fZ','now','-2 days','+0 minutes'), strftime('%Y-%m-%dT%H:%M:%fZ','now','-33 days','+0 minutes'))",
+      "params": [
+        "perf-pk-024",
+        "perf-trip-02",
+        "{{partner}}",
+        "Toiletries bag",
+        1,
+        "{{partner}}"
+      ]
+    },
+    {
+      "sql": "INSERT INTO app_trip_planner__packing_items (id, trip_id, member_id, label, checked, created_at) VALUES (?, ?, ?, ?, ?, strftime('%Y-%m-%dT%H:%M:%fZ','now','-33 days','+1 minutes'))",
+      "params": [
+        "perf-pk-025",
+        "perf-trip-02",
+        "{{partner}}",
+        "Camera",
+        0
+      ]
+    },
+    {
+      "sql": "INSERT INTO app_trip_planner__packing_items (id, trip_id, member_id, label, checked, checked_by, checked_at, created_at) VALUES (?, ?, ?, ?, ?, ?, strftime('%Y-%m-%dT%H:%M:%fZ','now','-2 days','+2 minutes'), strftime('%Y-%m-%dT%H:%M:%fZ','now','-33 days','+2 minutes'))",
+      "params": [
+        "perf-pk-026",
+        "perf-trip-02",
+        "{{partner}}",
+        "Swimsuit",
+        1,
+        "{{partner}}"
+      ]
+    },
+    {
+      "sql": "INSERT INTO app_trip_planner__packing_items (id, trip_id, member_id, label, checked, created_at) VALUES (?, ?, ?, ?, ?, strftime('%Y-%m-%dT%H:%M:%fZ','now','-33 days','+3 minutes'))",
+      "params": [
+        "perf-pk-027",
+        "perf-trip-02",
+        "{{partner}}",
+        "Travel pillow",
+        0
+      ]
+    },
+    {
+      "sql": "INSERT INTO app_trip_planner__packing_items (id, trip_id, member_id, label, checked, checked_by, checked_at, created_at) VALUES (?, ?, ?, ?, ?, ?, strftime('%Y-%m-%dT%H:%M:%fZ','now','-2 days','+0 minutes'), strftime('%Y-%m-%dT%H:%M:%fZ','now','-33 days','+0 minutes'))",
+      "params": [
+        "perf-pk-028",
+        "perf-trip-02",
+        "{{child}}",
+        "Stuffed dinosaur",
+        1,
+        "{{child}}"
+      ]
+    },
+    {
+      "sql": "INSERT INTO app_trip_planner__packing_items (id, trip_id, member_id, label, checked, created_at) VALUES (?, ?, ?, ?, ?, strftime('%Y-%m-%dT%H:%M:%fZ','now','-33 days','+1 minutes'))",
+      "params": [
+        "perf-pk-029",
+        "perf-trip-02",
+        "{{child}}",
+        "Tablet and headphones",
+        0
+      ]
+    },
+    {
+      "sql": "INSERT INTO app_trip_planner__packing_items (id, trip_id, member_id, label, checked, checked_by, checked_at, created_at) VALUES (?, ?, ?, ?, ?, ?, strftime('%Y-%m-%dT%H:%M:%fZ','now','-2 days','+2 minutes'), strftime('%Y-%m-%dT%H:%M:%fZ','now','-33 days','+2 minutes'))",
+      "params": [
+        "perf-pk-030",
+        "perf-trip-02",
+        "{{child}}",
+        "Swim goggles",
+        1,
+        "{{child}}"
+      ]
+    },
+    {
+      "sql": "INSERT INTO app_trip_planner__packing_items (id, trip_id, member_id, label, checked, created_at) VALUES (?, ?, ?, ?, ?, strftime('%Y-%m-%dT%H:%M:%fZ','now','-33 days','+3 minutes'))",
+      "params": [
+        "perf-pk-031",
+        "perf-trip-02",
+        "{{child}}",
+        "Pyjamas",
+        0
+      ]
+    },
+    {
+      "sql": "INSERT INTO app_trip_planner__packing_items (id, trip_id, member_id, label, checked, checked_by, checked_at, created_at) VALUES (?, ?, ?, ?, ?, ?, strftime('%Y-%m-%dT%H:%M:%fZ','now','-2 days','+0 minutes'), strftime('%Y-%m-%dT%H:%M:%fZ','now','-33 days','+0 minutes'))",
+      "params": [
+        "perf-pk-032",
+        "perf-trip-02",
+        "{{child2}}",
+        "Colouring books",
+        1,
+        "{{child2}}"
+      ]
+    },
+    {
+      "sql": "INSERT INTO app_trip_planner__packing_items (id, trip_id, member_id, label, checked, created_at) VALUES (?, ?, ?, ?, ?, strftime('%Y-%m-%dT%H:%M:%fZ','now','-33 days','+1 minutes'))",
+      "params": [
+        "perf-pk-033",
+        "perf-trip-02",
+        "{{child2}}",
+        "Favourite blanket",
+        0
+      ]
+    },
+    {
+      "sql": "INSERT INTO app_trip_planner__packing_items (id, trip_id, member_id, label, checked, checked_by, checked_at, created_at) VALUES (?, ?, ?, ?, ?, ?, strftime('%Y-%m-%dT%H:%M:%fZ','now','-2 days','+2 minutes'), strftime('%Y-%m-%dT%H:%M:%fZ','now','-33 days','+2 minutes'))",
+      "params": [
+        "perf-pk-034",
+        "perf-trip-02",
+        "{{child2}}",
+        "Water bottle",
+        1,
+        "{{child2}}"
+      ]
+    },
+    {
+      "sql": "INSERT INTO app_trip_planner__packing_items (id, trip_id, member_id, label, checked, created_at) VALUES (?, ?, ?, ?, ?, strftime('%Y-%m-%dT%H:%M:%fZ','now','-33 days','+3 minutes'))",
+      "params": [
+        "perf-pk-035",
+        "perf-trip-02",
+        "{{child2}}",
+        "Sneakers",
+        0
+      ]
+    },
+    {
+      "sql": "INSERT INTO app_trip_planner__shared_packing_items (id, trip_id, label, checked, checked_by, checked_at, created_at) VALUES (?, ?, ?, ?, ?, strftime('%Y-%m-%dT%H:%M:%fZ','now','-2 days','+0 minutes'), strftime('%Y-%m-%dT%H:%M:%fZ','now','-33 days','+0 minutes'))",
+      "params": [
+        "perf-sp-005",
+        "perf-trip-02",
+        "Cooler",
+        1,
+        "{{partner}}"
+      ]
+    },
+    {
+      "sql": "INSERT INTO app_trip_planner__shared_packing_items (id, trip_id, label, checked, created_at) VALUES (?, ?, ?, ?, strftime('%Y-%m-%dT%H:%M:%fZ','now','-33 days','+1 minutes'))",
+      "params": [
+        "perf-sp-006",
+        "perf-trip-02",
+        "Beach umbrella",
+        0
+      ]
+    },
+    {
+      "sql": "INSERT INTO app_trip_planner__shared_packing_items (id, trip_id, label, checked, created_at) VALUES (?, ?, ?, ?, strftime('%Y-%m-%dT%H:%M:%fZ','now','-33 days','+2 minutes'))",
+      "params": [
+        "perf-sp-007",
+        "perf-trip-02",
+        "Car snacks",
+        0
+      ]
+    },
+    {
+      "sql": "INSERT INTO app_trip_planner__shared_packing_items (id, trip_id, label, checked, created_at) VALUES (?, ?, ?, ?, strftime('%Y-%m-%dT%H:%M:%fZ','now','-33 days','+3 minutes'))",
+      "params": [
+        "perf-sp-008",
+        "perf-trip-02",
+        "Sunscreen",
+        0
+      ]
+    },
+    {
+      "sql": "INSERT INTO app_trip_planner__trips (id, title, destination, start_date, end_date, status, notes, created_by, created_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, strftime('%Y-%m-%dT%H:%M:%fZ','now','-20 days','+2 minutes'))",
+      "params": [
+        "perf-trip-03",
+        "Ski Weekend",
+        "Whistler, BC",
+        "{{date:98}}",
+        "{{date:101}}",
+        "planning",
+        "Need to sort rentals and lessons for the kids. Passports!",
+        "{{me}}"
+      ]
+    },
+    {
+      "sql": "INSERT INTO app_trip_planner__trip_members (id, trip_id, member_id, added_at) VALUES (?, ?, ?, strftime('%Y-%m-%dT%H:%M:%fZ','now','-20 days','+3 minutes'))",
+      "params": [
+        "perf-tm-010",
+        "perf-trip-03",
+        "{{me}}"
+      ]
+    },
+    {
+      "sql": "INSERT INTO app_trip_planner__trip_members (id, trip_id, member_id, added_at) VALUES (?, ?, ?, strftime('%Y-%m-%dT%H:%M:%fZ','now','-20 days','+4 minutes'))",
+      "params": [
+        "perf-tm-011",
+        "perf-trip-03",
+        "{{partner}}"
+      ]
+    },
+    {
+      "sql": "INSERT INTO app_trip_planner__trip_members (id, trip_id, member_id, added_at) VALUES (?, ?, ?, strftime('%Y-%m-%dT%H:%M:%fZ','now','-20 days','+5 minutes'))",
+      "params": [
+        "perf-tm-012",
+        "perf-trip-03",
+        "{{adult2}}"
+      ]
+    },
+    {
+      "sql": "INSERT INTO app_trip_planner__trip_members (id, trip_id, member_id, added_at) VALUES (?, ?, ?, strftime('%Y-%m-%dT%H:%M:%fZ','now','-20 days','+6 minutes'))",
+      "params": [
+        "perf-tm-013",
+        "perf-trip-03",
+        "{{child}}"
+      ]
+    },
+    {
+      "sql": "INSERT INTO app_trip_planner__trip_members (id, trip_id, member_id, added_at) VALUES (?, ?, ?, strftime('%Y-%m-%dT%H:%M:%fZ','now','-20 days','+7 minutes'))",
+      "params": [
+        "perf-tm-014",
+        "perf-trip-03",
+        "{{child2}}"
+      ]
+    },
+    {
+      "sql": "INSERT INTO app_trip_planner__itinerary_items (id, trip_id, item_date, sort_order, time, title, description, category, created_by, created_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, strftime('%Y-%m-%dT%H:%M:%fZ','now','-19 days','+0 minutes'))",
+      "params": [
+        "perf-it-015",
+        "perf-trip-03",
+        "{{date:98}}",
+        0,
+        "08:00",
+        "Drive out",
+        "Leave by 8 to beat traffic.",
+        "transport",
+        "{{partner}}"
+      ]
+    },
+    {
+      "sql": "INSERT INTO app_trip_planner__itinerary_items (id, trip_id, item_date, sort_order, time, title, description, category, booking_url, created_by, created_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, strftime('%Y-%m-%dT%H:%M:%fZ','now','-19 days','+1 minutes'))",
+      "params": [
+        "perf-it-016",
+        "perf-trip-03",
+        "{{date:98}}",
+        1,
+        "16:00",
+        "Check in",
+        "Confirmation is in the shared inbox.",
+        "accommodation",
+        "https://example.com/booking/16",
+        "{{me}}"
+      ]
+    },
+    {
+      "sql": "INSERT INTO app_trip_planner__itinerary_items (id, trip_id, item_date, sort_order, time, title, description, category, booking_url, created_by, created_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, strftime('%Y-%m-%dT%H:%M:%fZ','now','-19 days','+2 minutes'))",
+      "params": [
+        "perf-it-017",
+        "perf-trip-03",
+        "{{date:99}}",
+        2,
+        "18:30",
+        "Dinner in town",
+        "Booked for the whole group.",
+        "restaurant",
+        "https://example.com/booking/17",
+        "{{me}}"
+      ]
+    },
+    {
+      "sql": "INSERT INTO app_trip_planner__itinerary_items (id, trip_id, sort_order, time, title, description, category, created_by, created_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, strftime('%Y-%m-%dT%H:%M:%fZ','now','-19 days','+3 minutes'))",
+      "params": [
+        "perf-it-018",
+        "perf-trip-03",
+        3,
+        "09:30",
+        "Morning hike",
+        "Easy loop, about two hours.",
+        "activity",
+        "{{partner}}"
+      ]
+    },
+    {
+      "sql": "INSERT INTO app_trip_planner__itinerary_items (id, trip_id, sort_order, time, title, description, category, created_by, created_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, strftime('%Y-%m-%dT%H:%M:%fZ','now','-19 days','+4 minutes'))",
+      "params": [
+        "perf-it-019",
+        "perf-trip-03",
+        4,
+        "13:00",
+        "Afternoon on the water",
+        "Kayaks are first come first served.",
+        "activity",
+        "{{me}}"
+      ]
+    },
+    {
+      "sql": "INSERT INTO app_trip_planner__itinerary_items (id, trip_id, item_date, sort_order, time, title, description, category, booking_url, created_by, created_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, strftime('%Y-%m-%dT%H:%M:%fZ','now','-19 days','+5 minutes'))",
+      "params": [
+        "perf-it-020",
+        "perf-trip-03",
+        "{{date:100}}",
+        5,
+        "08:30",
+        "Pancake breakfast",
+        "The place with the long line. Worth it.",
+        "restaurant",
+        "https://example.com/booking/20",
+        "{{me}}"
+      ]
+    },
+    {
+      "sql": "INSERT INTO app_trip_planner__itinerary_items (id, trip_id, item_date, sort_order, time, title, description, category, created_by, created_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, strftime('%Y-%m-%dT%H:%M:%fZ','now','-19 days','+6 minutes'))",
+      "params": [
+        "perf-it-021",
+        "perf-trip-03",
+        "{{date:101}}",
+        6,
+        "11:00",
+        "Head home",
+        "Check out by 11.",
+        "transport",
+        "{{partner}}"
+      ]
+    },
+    {
+      "sql": "INSERT INTO app_trip_planner__packing_items (id, trip_id, member_id, label, checked, created_at) VALUES (?, ?, ?, ?, ?, strftime('%Y-%m-%dT%H:%M:%fZ','now','-18 days','+0 minutes'))",
+      "params": [
+        "perf-pk-036",
+        "perf-trip-03",
+        "{{me}}",
+        "Passport and wallet",
+        0
+      ]
+    },
+    {
+      "sql": "INSERT INTO app_trip_planner__packing_items (id, trip_id, member_id, label, checked, created_at) VALUES (?, ?, ?, ?, ?, strftime('%Y-%m-%dT%H:%M:%fZ','now','-18 days','+1 minutes'))",
+      "params": [
+        "perf-pk-037",
+        "perf-trip-03",
+        "{{me}}",
+        "Phone charger",
+        0
+      ]
+    },
+    {
+      "sql": "INSERT INTO app_trip_planner__packing_items (id, trip_id, member_id, label, checked, created_at) VALUES (?, ?, ?, ?, ?, strftime('%Y-%m-%dT%H:%M:%fZ','now','-18 days','+2 minutes'))",
+      "params": [
+        "perf-pk-038",
+        "perf-trip-03",
+        "{{me}}",
+        "Hiking boots",
+        0
+      ]
+    },
+    {
+      "sql": "INSERT INTO app_trip_planner__packing_items (id, trip_id, member_id, label, checked, created_at) VALUES (?, ?, ?, ?, ?, strftime('%Y-%m-%dT%H:%M:%fZ','now','-18 days','+3 minutes'))",
+      "params": [
+        "perf-pk-039",
+        "perf-trip-03",
+        "{{me}}",
+        "Rain jacket",
+        0
+      ]
+    },
+    {
+      "sql": "INSERT INTO app_trip_planner__packing_items (id, trip_id, member_id, label, checked, created_at) VALUES (?, ?, ?, ?, ?, strftime('%Y-%m-%dT%H:%M:%fZ','now','-18 days','+0 minutes'))",
+      "params": [
+        "perf-pk-040",
+        "perf-trip-03",
+        "{{partner}}",
+        "Toiletries bag",
+        0
+      ]
+    },
+    {
+      "sql": "INSERT INTO app_trip_planner__packing_items (id, trip_id, member_id, label, checked, created_at) VALUES (?, ?, ?, ?, ?, strftime('%Y-%m-%dT%H:%M:%fZ','now','-18 days','+1 minutes'))",
+      "params": [
+        "perf-pk-041",
+        "perf-trip-03",
+        "{{partner}}",
+        "Camera",
+        0
+      ]
+    },
+    {
+      "sql": "INSERT INTO app_trip_planner__packing_items (id, trip_id, member_id, label, checked, created_at) VALUES (?, ?, ?, ?, ?, strftime('%Y-%m-%dT%H:%M:%fZ','now','-18 days','+2 minutes'))",
+      "params": [
+        "perf-pk-042",
+        "perf-trip-03",
+        "{{partner}}",
+        "Swimsuit",
+        0
+      ]
+    },
+    {
+      "sql": "INSERT INTO app_trip_planner__packing_items (id, trip_id, member_id, label, checked, created_at) VALUES (?, ?, ?, ?, ?, strftime('%Y-%m-%dT%H:%M:%fZ','now','-18 days','+3 minutes'))",
+      "params": [
+        "perf-pk-043",
+        "perf-trip-03",
+        "{{partner}}",
+        "Travel pillow",
+        0
+      ]
+    },
+    {
+      "sql": "INSERT INTO app_trip_planner__packing_items (id, trip_id, member_id, label, checked, created_at) VALUES (?, ?, ?, ?, ?, strftime('%Y-%m-%dT%H:%M:%fZ','now','-18 days','+0 minutes'))",
+      "params": [
+        "perf-pk-044",
+        "perf-trip-03",
+        "{{adult2}}",
+        "Guitar",
+        0
+      ]
+    },
+    {
+      "sql": "INSERT INTO app_trip_planner__packing_items (id, trip_id, member_id, label, checked, created_at) VALUES (?, ?, ?, ?, ?, strftime('%Y-%m-%dT%H:%M:%fZ','now','-18 days','+1 minutes'))",
+      "params": [
+        "perf-pk-045",
+        "perf-trip-03",
+        "{{adult2}}",
+        "Sleeping bag",
+        0
+      ]
+    },
+    {
+      "sql": "INSERT INTO app_trip_planner__packing_items (id, trip_id, member_id, label, checked, created_at) VALUES (?, ?, ?, ?, ?, strftime('%Y-%m-%dT%H:%M:%fZ','now','-18 days','+2 minutes'))",
+      "params": [
+        "perf-pk-046",
+        "perf-trip-03",
+        "{{adult2}}",
+        "Board games",
+        0
+      ]
+    },
+    {
+      "sql": "INSERT INTO app_trip_planner__packing_items (id, trip_id, member_id, label, checked, created_at) VALUES (?, ?, ?, ?, ?, strftime('%Y-%m-%dT%H:%M:%fZ','now','-18 days','+0 minutes'))",
+      "params": [
+        "perf-pk-047",
+        "perf-trip-03",
+        "{{child}}",
+        "Stuffed dinosaur",
+        0
+      ]
+    },
+    {
+      "sql": "INSERT INTO app_trip_planner__packing_items (id, trip_id, member_id, label, checked, created_at) VALUES (?, ?, ?, ?, ?, strftime('%Y-%m-%dT%H:%M:%fZ','now','-18 days','+1 minutes'))",
+      "params": [
+        "perf-pk-048",
+        "perf-trip-03",
+        "{{child}}",
+        "Tablet and headphones",
+        0
+      ]
+    },
+    {
+      "sql": "INSERT INTO app_trip_planner__packing_items (id, trip_id, member_id, label, checked, created_at) VALUES (?, ?, ?, ?, ?, strftime('%Y-%m-%dT%H:%M:%fZ','now','-18 days','+2 minutes'))",
+      "params": [
+        "perf-pk-049",
+        "perf-trip-03",
+        "{{child}}",
+        "Swim goggles",
+        0
+      ]
+    },
+    {
+      "sql": "INSERT INTO app_trip_planner__packing_items (id, trip_id, member_id, label, checked, created_at) VALUES (?, ?, ?, ?, ?, strftime('%Y-%m-%dT%H:%M:%fZ','now','-18 days','+3 minutes'))",
+      "params": [
+        "perf-pk-050",
+        "perf-trip-03",
+        "{{child}}",
+        "Pyjamas",
+        0
+      ]
+    },
+    {
+      "sql": "INSERT INTO app_trip_planner__packing_items (id, trip_id, member_id, label, checked, created_at) VALUES (?, ?, ?, ?, ?, strftime('%Y-%m-%dT%H:%M:%fZ','now','-18 days','+0 minutes'))",
+      "params": [
+        "perf-pk-051",
+        "perf-trip-03",
+        "{{child2}}",
+        "Colouring books",
+        0
+      ]
+    },
+    {
+      "sql": "INSERT INTO app_trip_planner__packing_items (id, trip_id, member_id, label, checked, created_at) VALUES (?, ?, ?, ?, ?, strftime('%Y-%m-%dT%H:%M:%fZ','now','-18 days','+1 minutes'))",
+      "params": [
+        "perf-pk-052",
+        "perf-trip-03",
+        "{{child2}}",
+        "Favourite blanket",
+        0
+      ]
+    },
+    {
+      "sql": "INSERT INTO app_trip_planner__packing_items (id, trip_id, member_id, label, checked, created_at) VALUES (?, ?, ?, ?, ?, strftime('%Y-%m-%dT%H:%M:%fZ','now','-18 days','+2 minutes'))",
+      "params": [
+        "perf-pk-053",
+        "perf-trip-03",
+        "{{child2}}",
+        "Water bottle",
+        0
+      ]
+    },
+    {
+      "sql": "INSERT INTO app_trip_planner__packing_items (id, trip_id, member_id, label, checked, created_at) VALUES (?, ?, ?, ?, ?, strftime('%Y-%m-%dT%H:%M:%fZ','now','-18 days','+3 minutes'))",
+      "params": [
+        "perf-pk-054",
+        "perf-trip-03",
+        "{{child2}}",
+        "Sneakers",
+        0
+      ]
+    },
+    {
+      "sql": "INSERT INTO app_trip_planner__shared_packing_items (id, trip_id, label, checked, created_at) VALUES (?, ?, ?, ?, strftime('%Y-%m-%dT%H:%M:%fZ','now','-18 days','+0 minutes'))",
+      "params": [
+        "perf-sp-009",
+        "perf-trip-03",
+        "Beach umbrella",
+        0
+      ]
+    },
+    {
+      "sql": "INSERT INTO app_trip_planner__shared_packing_items (id, trip_id, label, checked, created_at) VALUES (?, ?, ?, ?, strftime('%Y-%m-%dT%H:%M:%fZ','now','-18 days','+1 minutes'))",
+      "params": [
+        "perf-sp-010",
+        "perf-trip-03",
+        "Car snacks",
+        0
+      ]
+    },
+    {
+      "sql": "INSERT INTO app_trip_planner__shared_packing_items (id, trip_id, label, checked, created_at) VALUES (?, ?, ?, ?, strftime('%Y-%m-%dT%H:%M:%fZ','now','-18 days','+2 minutes'))",
+      "params": [
+        "perf-sp-011",
+        "perf-trip-03",
+        "Sunscreen",
+        0
+      ]
+    },
+    {
+      "sql": "INSERT INTO app_trip_planner__shared_packing_items (id, trip_id, label, checked, created_at) VALUES (?, ?, ?, ?, strftime('%Y-%m-%dT%H:%M:%fZ','now','-18 days','+3 minutes'))",
+      "params": [
+        "perf-sp-012",
+        "perf-trip-03",
+        "Bug spray",
+        0
+      ]
+    },
+    {
+      "sql": "INSERT INTO app_trip_planner__trips (id, title, destination, start_date, end_date, status, notes, created_by, created_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, strftime('%Y-%m-%dT%H:%M:%fZ','now','-12 days','+3 minutes'))",
+      "params": [
+        "perf-trip-04",
+        "Spring Break Road Trip",
+        "Utah National Parks",
+        "{{date:165}}",
+        "{{date:173}}",
+        "planning",
+        "Arches, Canyonlands, Capitol Reef. Loop back through Salt Lake.",
+        "{{me}}"
+      ]
+    },
+    {
+      "sql": "INSERT INTO app_trip_planner__trip_members (id, trip_id, member_id, added_at) VALUES (?, ?, ?, strftime('%Y-%m-%dT%H:%M:%fZ','now','-12 days','+4 minutes'))",
+      "params": [
+        "perf-tm-015",
+        "perf-trip-04",
+        "{{me}}"
+      ]
+    },
+    {
+      "sql": "INSERT INTO app_trip_planner__trip_members (id, trip_id, member_id, added_at) VALUES (?, ?, ?, strftime('%Y-%m-%dT%H:%M:%fZ','now','-12 days','+5 minutes'))",
+      "params": [
+        "perf-tm-016",
+        "perf-trip-04",
+        "{{partner}}"
+      ]
+    },
+    {
+      "sql": "INSERT INTO app_trip_planner__trip_members (id, trip_id, member_id, added_at) VALUES (?, ?, ?, strftime('%Y-%m-%dT%H:%M:%fZ','now','-12 days','+6 minutes'))",
+      "params": [
+        "perf-tm-017",
+        "perf-trip-04",
+        "{{child}}"
+      ]
+    },
+    {
+      "sql": "INSERT INTO app_trip_planner__trip_members (id, trip_id, member_id, added_at) VALUES (?, ?, ?, strftime('%Y-%m-%dT%H:%M:%fZ','now','-12 days','+7 minutes'))",
+      "params": [
+        "perf-tm-018",
+        "perf-trip-04",
+        "{{child2}}"
+      ]
+    },
+    {
+      "sql": "INSERT INTO app_trip_planner__itinerary_items (id, trip_id, item_date, sort_order, time, title, description, category, created_by, created_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, strftime('%Y-%m-%dT%H:%M:%fZ','now','-11 days','+0 minutes'))",
+      "params": [
+        "perf-it-022",
+        "perf-trip-04",
+        "{{date:165}}",
+        0,
+        "08:00",
+        "Drive out",
+        "Leave by 8 to beat traffic.",
+        "transport",
+        "{{partner}}"
+      ]
+    },
+    {
+      "sql": "INSERT INTO app_trip_planner__itinerary_items (id, trip_id, item_date, sort_order, time, title, description, category, booking_url, created_by, created_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, strftime('%Y-%m-%dT%H:%M:%fZ','now','-11 days','+1 minutes'))",
+      "params": [
+        "perf-it-023",
+        "perf-trip-04",
+        "{{date:166}}",
+        1,
+        "16:00",
+        "Check in",
+        "Confirmation is in the shared inbox.",
+        "accommodation",
+        "https://example.com/booking/23",
+        "{{me}}"
+      ]
+    },
+    {
+      "sql": "INSERT INTO app_trip_planner__itinerary_items (id, trip_id, item_date, sort_order, time, title, description, category, booking_url, created_by, created_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, strftime('%Y-%m-%dT%H:%M:%fZ','now','-11 days','+2 minutes'))",
+      "params": [
+        "perf-it-024",
+        "perf-trip-04",
+        "{{date:167}}",
+        2,
+        "18:30",
+        "Dinner in town",
+        "Booked for the whole group.",
+        "restaurant",
+        "https://example.com/booking/24",
+        "{{me}}"
+      ]
+    },
+    {
+      "sql": "INSERT INTO app_trip_planner__itinerary_items (id, trip_id, sort_order, time, title, description, category, created_by, created_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, strftime('%Y-%m-%dT%H:%M:%fZ','now','-11 days','+3 minutes'))",
+      "params": [
+        "perf-it-025",
+        "perf-trip-04",
+        3,
+        "09:30",
+        "Morning hike",
+        "Easy loop, about two hours.",
+        "activity",
+        "{{partner}}"
+      ]
+    },
+    {
+      "sql": "INSERT INTO app_trip_planner__itinerary_items (id, trip_id, sort_order, time, title, description, category, created_by, created_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, strftime('%Y-%m-%dT%H:%M:%fZ','now','-11 days','+4 minutes'))",
+      "params": [
+        "perf-it-026",
+        "perf-trip-04",
+        4,
+        "13:00",
+        "Afternoon on the water",
+        "Kayaks are first come first served.",
+        "activity",
+        "{{me}}"
+      ]
+    },
+    {
+      "sql": "INSERT INTO app_trip_planner__itinerary_items (id, trip_id, item_date, sort_order, time, title, description, category, booking_url, created_by, created_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, strftime('%Y-%m-%dT%H:%M:%fZ','now','-11 days','+5 minutes'))",
+      "params": [
+        "perf-it-027",
+        "perf-trip-04",
+        "{{date:171}}",
+        5,
+        "08:30",
+        "Pancake breakfast",
+        "The place with the long line. Worth it.",
+        "restaurant",
+        "https://example.com/booking/27",
+        "{{me}}"
+      ]
+    },
+    {
+      "sql": "INSERT INTO app_trip_planner__itinerary_items (id, trip_id, item_date, sort_order, time, title, description, category, created_by, created_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, strftime('%Y-%m-%dT%H:%M:%fZ','now','-11 days','+6 minutes'))",
+      "params": [
+        "perf-it-028",
+        "perf-trip-04",
+        "{{date:173}}",
+        6,
+        "11:00",
+        "Head home",
+        "Check out by 11.",
+        "transport",
+        "{{partner}}"
+      ]
+    },
+    {
+      "sql": "INSERT INTO app_trip_planner__packing_items (id, trip_id, member_id, label, checked, created_at) VALUES (?, ?, ?, ?, ?, strftime('%Y-%m-%dT%H:%M:%fZ','now','-10 days','+0 minutes'))",
+      "params": [
+        "perf-pk-055",
+        "perf-trip-04",
+        "{{me}}",
+        "Passport and wallet",
+        0
+      ]
+    },
+    {
+      "sql": "INSERT INTO app_trip_planner__packing_items (id, trip_id, member_id, label, checked, created_at) VALUES (?, ?, ?, ?, ?, strftime('%Y-%m-%dT%H:%M:%fZ','now','-10 days','+1 minutes'))",
+      "params": [
+        "perf-pk-056",
+        "perf-trip-04",
+        "{{me}}",
+        "Phone charger",
+        0
+      ]
+    },
+    {
+      "sql": "INSERT INTO app_trip_planner__packing_items (id, trip_id, member_id, label, checked, created_at) VALUES (?, ?, ?, ?, ?, strftime('%Y-%m-%dT%H:%M:%fZ','now','-10 days','+2 minutes'))",
+      "params": [
+        "perf-pk-057",
+        "perf-trip-04",
+        "{{me}}",
+        "Hiking boots",
+        0
+      ]
+    },
+    {
+      "sql": "INSERT INTO app_trip_planner__packing_items (id, trip_id, member_id, label, checked, created_at) VALUES (?, ?, ?, ?, ?, strftime('%Y-%m-%dT%H:%M:%fZ','now','-10 days','+3 minutes'))",
+      "params": [
+        "perf-pk-058",
+        "perf-trip-04",
+        "{{me}}",
+        "Rain jacket",
+        0
+      ]
+    },
+    {
+      "sql": "INSERT INTO app_trip_planner__shared_packing_items (id, trip_id, label, checked, created_at) VALUES (?, ?, ?, ?, strftime('%Y-%m-%dT%H:%M:%fZ','now','-10 days','+0 minutes'))",
+      "params": [
+        "perf-sp-013",
+        "perf-trip-04",
+        "First aid kit",
+        0
+      ]
+    },
+    {
+      "sql": "INSERT INTO app_trip_planner__shared_packing_items (id, trip_id, label, checked, created_at) VALUES (?, ?, ?, ?, strftime('%Y-%m-%dT%H:%M:%fZ','now','-10 days','+1 minutes'))",
+      "params": [
+        "perf-sp-014",
+        "perf-trip-04",
+        "Cooler",
+        0
+      ]
+    },
+    {
+      "sql": "INSERT INTO app_trip_planner__shared_packing_items (id, trip_id, label, checked, created_at) VALUES (?, ?, ?, ?, strftime('%Y-%m-%dT%H:%M:%fZ','now','-10 days','+2 minutes'))",
+      "params": [
+        "perf-sp-015",
+        "perf-trip-04",
+        "Beach umbrella",
+        0
+      ]
+    },
+    {
+      "sql": "INSERT INTO app_trip_planner__shared_packing_items (id, trip_id, label, checked, created_at) VALUES (?, ?, ?, ?, strftime('%Y-%m-%dT%H:%M:%fZ','now','-10 days','+3 minutes'))",
+      "params": [
+        "perf-sp-016",
+        "perf-trip-04",
+        "Car snacks",
+        0
+      ]
+    },
+    {
+      "sql": "INSERT INTO app_trip_planner__trips (id, title, destination, start_date, end_date, status, notes, created_by, created_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, strftime('%Y-%m-%dT%H:%M:%fZ','now','-5 days','+4 minutes'))",
+      "params": [
+        "perf-trip-05",
+        "Summer in Lisbon",
+        "Lisbon, Portugal",
+        "{{date:255}}",
+        "{{date:268}}",
+        "planning",
+        "Still comparing flights. Apartment shortlist in the notes.",
+        "{{partner}}"
+      ]
+    },
+    {
+      "sql": "INSERT INTO app_trip_planner__trip_members (id, trip_id, member_id, added_at) VALUES (?, ?, ?, strftime('%Y-%m-%dT%H:%M:%fZ','now','-5 days','+5 minutes'))",
+      "params": [
+        "perf-tm-019",
+        "perf-trip-05",
+        "{{me}}"
+      ]
+    },
+    {
+      "sql": "INSERT INTO app_trip_planner__trip_members (id, trip_id, member_id, added_at) VALUES (?, ?, ?, strftime('%Y-%m-%dT%H:%M:%fZ','now','-5 days','+6 minutes'))",
+      "params": [
+        "perf-tm-020",
+        "perf-trip-05",
+        "{{partner}}"
+      ]
+    },
+    {
+      "sql": "INSERT INTO app_trip_planner__trip_members (id, trip_id, member_id, added_at) VALUES (?, ?, ?, strftime('%Y-%m-%dT%H:%M:%fZ','now','-5 days','+7 minutes'))",
+      "params": [
+        "perf-tm-021",
+        "perf-trip-05",
+        "{{adult2}}"
+      ]
+    },
+    {
+      "sql": "INSERT INTO app_trip_planner__trip_members (id, trip_id, member_id, added_at) VALUES (?, ?, ?, strftime('%Y-%m-%dT%H:%M:%fZ','now','-5 days','+8 minutes'))",
+      "params": [
+        "perf-tm-022",
+        "perf-trip-05",
+        "{{child}}"
+      ]
+    },
+    {
+      "sql": "INSERT INTO app_trip_planner__trip_members (id, trip_id, member_id, added_at) VALUES (?, ?, ?, strftime('%Y-%m-%dT%H:%M:%fZ','now','-5 days','+9 minutes'))",
+      "params": [
+        "perf-tm-023",
+        "perf-trip-05",
+        "{{child2}}"
+      ]
+    },
+    {
+      "sql": "INSERT INTO app_trip_planner__itinerary_items (id, trip_id, item_date, sort_order, time, title, description, category, created_by, created_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, strftime('%Y-%m-%dT%H:%M:%fZ','now','-4 days','+0 minutes'))",
+      "params": [
+        "perf-it-029",
+        "perf-trip-05",
+        "{{date:255}}",
+        0,
+        "08:00",
+        "Drive out",
+        "Leave by 8 to beat traffic.",
+        "transport",
+        "{{me}}"
+      ]
+    },
+    {
+      "sql": "INSERT INTO app_trip_planner__itinerary_items (id, trip_id, item_date, sort_order, time, title, description, category, booking_url, created_by, created_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, strftime('%Y-%m-%dT%H:%M:%fZ','now','-4 days','+1 minutes'))",
+      "params": [
+        "perf-it-030",
+        "perf-trip-05",
+        "{{date:257}}",
+        1,
+        "16:00",
+        "Check in",
+        "Confirmation is in the shared inbox.",
+        "accommodation",
+        "https://example.com/booking/30",
+        "{{partner}}"
+      ]
+    },
+    {
+      "sql": "INSERT INTO app_trip_planner__itinerary_items (id, trip_id, item_date, sort_order, time, title, description, category, booking_url, created_by, created_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, strftime('%Y-%m-%dT%H:%M:%fZ','now','-4 days','+2 minutes'))",
+      "params": [
+        "perf-it-031",
+        "perf-trip-05",
+        "{{date:259}}",
+        2,
+        "18:30",
+        "Dinner in town",
+        "Booked for the whole group.",
+        "restaurant",
+        "https://example.com/booking/31",
+        "{{partner}}"
+      ]
+    },
+    {
+      "sql": "INSERT INTO app_trip_planner__itinerary_items (id, trip_id, sort_order, time, title, description, category, created_by, created_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, strftime('%Y-%m-%dT%H:%M:%fZ','now','-4 days','+3 minutes'))",
+      "params": [
+        "perf-it-032",
+        "perf-trip-05",
+        3,
+        "09:30",
+        "Morning hike",
+        "Easy loop, about two hours.",
+        "activity",
+        "{{me}}"
+      ]
+    },
+    {
+      "sql": "INSERT INTO app_trip_planner__itinerary_items (id, trip_id, sort_order, time, title, description, category, created_by, created_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, strftime('%Y-%m-%dT%H:%M:%fZ','now','-4 days','+4 minutes'))",
+      "params": [
+        "perf-it-033",
+        "perf-trip-05",
+        4,
+        "13:00",
+        "Afternoon on the water",
+        "Kayaks are first come first served.",
+        "activity",
+        "{{partner}}"
+      ]
+    },
+    {
+      "sql": "INSERT INTO app_trip_planner__itinerary_items (id, trip_id, item_date, sort_order, time, title, description, category, booking_url, created_by, created_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, strftime('%Y-%m-%dT%H:%M:%fZ','now','-4 days','+5 minutes'))",
+      "params": [
+        "perf-it-034",
+        "perf-trip-05",
+        "{{date:265}}",
+        5,
+        "08:30",
+        "Pancake breakfast",
+        "The place with the long line. Worth it.",
+        "restaurant",
+        "https://example.com/booking/34",
+        "{{partner}}"
+      ]
+    },
+    {
+      "sql": "INSERT INTO app_trip_planner__itinerary_items (id, trip_id, item_date, sort_order, time, title, description, category, created_by, created_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, strftime('%Y-%m-%dT%H:%M:%fZ','now','-4 days','+6 minutes'))",
+      "params": [
+        "perf-it-035",
+        "perf-trip-05",
+        "{{date:268}}",
+        6,
+        "11:00",
+        "Head home",
+        "Check out by 11.",
+        "transport",
+        "{{me}}"
+      ]
+    },
+    {
+      "sql": "INSERT INTO app_trip_planner__shared_packing_items (id, trip_id, label, checked, created_at) VALUES (?, ?, ?, ?, strftime('%Y-%m-%dT%H:%M:%fZ','now','-3 days','+0 minutes'))",
+      "params": [
+        "perf-sp-017",
+        "perf-trip-05",
+        "Cooler",
+        0
+      ]
+    },
+    {
+      "sql": "INSERT INTO app_trip_planner__shared_packing_items (id, trip_id, label, checked, created_at) VALUES (?, ?, ?, ?, strftime('%Y-%m-%dT%H:%M:%fZ','now','-3 days','+1 minutes'))",
+      "params": [
+        "perf-sp-018",
+        "perf-trip-05",
+        "Beach umbrella",
+        0
+      ]
+    },
+    {
+      "sql": "INSERT INTO app_trip_planner__trips (id, title, destination, start_date, end_date, status, notes, created_by, created_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, strftime('%Y-%m-%dT%H:%M:%fZ','now','-30 days','+5 minutes'))",
+      "params": [
+        "perf-trip-06",
+        "Anniversary Getaway",
+        "Victoria, BC",
+        "{{date:-2}}",
+        "{{date:1}}",
+        "confirmed",
+        "Ferry at 9am Thursday. Neighbour is watching the kids.",
+        "{{me}}"
+      ]
+    },
+    {
+      "sql": "INSERT INTO app_trip_planner__trip_members (id, trip_id, member_id, added_at) VALUES (?, ?, ?, strftime('%Y-%m-%dT%H:%M:%fZ','now','-30 days','+6 minutes'))",
+      "params": [
+        "perf-tm-024",
+        "perf-trip-06",
+        "{{me}}"
+      ]
+    },
+    {
+      "sql": "INSERT INTO app_trip_planner__trip_members (id, trip_id, member_id, added_at) VALUES (?, ?, ?, strftime('%Y-%m-%dT%H:%M:%fZ','now','-30 days','+7 minutes'))",
+      "params": [
+        "perf-tm-025",
+        "perf-trip-06",
+        "{{partner}}"
+      ]
+    },
+    {
+      "sql": "INSERT INTO app_trip_planner__itinerary_items (id, trip_id, item_date, sort_order, time, title, description, category, confirmation_code, created_by, created_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, strftime('%Y-%m-%dT%H:%M:%fZ','now','-29 days','+0 minutes'))",
+      "params": [
+        "perf-it-036",
+        "perf-trip-06",
+        "{{date:-2}}",
+        0,
+        "08:00",
+        "Drive out",
+        "Leave by 8 to beat traffic.",
+        "transport",
+        "CNF1252",
+        "{{partner}}"
+      ]
+    },
+    {
+      "sql": "INSERT INTO app_trip_planner__itinerary_items (id, trip_id, item_date, sort_order, time, title, description, category, booking_url, confirmation_code, created_by, created_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, strftime('%Y-%m-%dT%H:%M:%fZ','now','-29 days','+1 minutes'))",
+      "params": [
+        "perf-it-037",
+        "perf-trip-06",
+        "{{date:-2}}",
+        1,
+        "16:00",
+        "Check in",
+        "Confirmation is in the shared inbox.",
+        "accommodation",
+        "https://example.com/booking/37",
+        "CNF1259",
+        "{{me}}"
+      ]
+    },
+    {
+      "sql": "INSERT INTO app_trip_planner__itinerary_items (id, trip_id, item_date, sort_order, time, title, description, category, booking_url, created_by, created_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, strftime('%Y-%m-%dT%H:%M:%fZ','now','-29 days','+2 minutes'))",
+      "params": [
+        "perf-it-038",
+        "perf-trip-06",
+        "{{date:-1}}",
+        2,
+        "18:30",
+        "Dinner in town",
+        "Booked for the whole group.",
+        "restaurant",
+        "https://example.com/booking/38",
+        "{{me}}"
+      ]
+    },
+    {
+      "sql": "INSERT INTO app_trip_planner__itinerary_items (id, trip_id, item_date, sort_order, time, title, description, category, created_by, created_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, strftime('%Y-%m-%dT%H:%M:%fZ','now','-29 days','+3 minutes'))",
+      "params": [
+        "perf-it-039",
+        "perf-trip-06",
+        "{{date:-1}}",
+        3,
+        "09:30",
+        "Morning hike",
+        "Easy loop, about two hours.",
+        "activity",
+        "{{partner}}"
+      ]
+    },
+    {
+      "sql": "INSERT INTO app_trip_planner__itinerary_items (id, trip_id, item_date, sort_order, time, title, description, category, created_by, created_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, strftime('%Y-%m-%dT%H:%M:%fZ','now','-29 days','+4 minutes'))",
+      "params": [
+        "perf-it-040",
+        "perf-trip-06",
+        "{{date:0}}",
+        4,
+        "13:00",
+        "Afternoon on the water",
+        "Kayaks are first come first served.",
+        "activity",
+        "{{me}}"
+      ]
+    },
+    {
+      "sql": "INSERT INTO app_trip_planner__itinerary_items (id, trip_id, item_date, sort_order, time, title, description, category, booking_url, created_by, created_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, strftime('%Y-%m-%dT%H:%M:%fZ','now','-29 days','+5 minutes'))",
+      "params": [
+        "perf-it-041",
+        "perf-trip-06",
+        "{{date:0}}",
+        5,
+        "08:30",
+        "Pancake breakfast",
+        "The place with the long line. Worth it.",
+        "restaurant",
+        "https://example.com/booking/41",
+        "{{me}}"
+      ]
+    },
+    {
+      "sql": "INSERT INTO app_trip_planner__itinerary_items (id, trip_id, item_date, sort_order, time, title, description, category, confirmation_code, created_by, created_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, strftime('%Y-%m-%dT%H:%M:%fZ','now','-29 days','+6 minutes'))",
+      "params": [
+        "perf-it-042",
+        "perf-trip-06",
+        "{{date:1}}",
+        6,
+        "11:00",
+        "Head home",
+        "Check out by 11.",
+        "transport",
+        "CNF1294",
+        "{{partner}}"
+      ]
+    },
+    {
+      "sql": "INSERT INTO app_trip_planner__shared_packing_items (id, trip_id, label, checked, checked_by, checked_at, created_at) VALUES (?, ?, ?, ?, ?, strftime('%Y-%m-%dT%H:%M:%fZ','now','-2 days','+0 minutes'), strftime('%Y-%m-%dT%H:%M:%fZ','now','-28 days','+0 minutes'))",
+      "params": [
+        "perf-sp-019",
+        "perf-trip-06",
+        "Beach umbrella",
+        1,
+        "{{me}}"
+      ]
+    },
+    {
+      "sql": "INSERT INTO app_trip_planner__shared_packing_items (id, trip_id, label, checked, created_at) VALUES (?, ?, ?, ?, strftime('%Y-%m-%dT%H:%M:%fZ','now','-28 days','+1 minutes'))",
+      "params": [
+        "perf-sp-020",
+        "perf-trip-06",
+        "Car snacks",
+        0
+      ]
+    },
+    {
+      "sql": "INSERT INTO app_trip_planner__trips (id, title, destination, start_date, end_date, status, notes, created_by, created_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, strftime('%Y-%m-%dT%H:%M:%fZ','now','-90 days','+6 minutes'))",
+      "params": [
+        "perf-trip-07",
+        "Labor Day Camping",
+        "Olympic National Park",
+        "{{date:-36}}",
+        "{{date:-33}}",
+        "completed",
+        "Site 14 at Kalaloch. Book earlier next year.",
+        "{{partner}}"
+      ]
+    },
+    {
+      "sql": "INSERT INTO app_trip_planner__trip_members (id, trip_id, member_id, added_at) VALUES (?, ?, ?, strftime('%Y-%m-%dT%H:%M:%fZ','now','-90 days','+7 minutes'))",
+      "params": [
+        "perf-tm-026",
+        "perf-trip-07",
+        "{{me}}"
+      ]
+    },
+    {
+      "sql": "INSERT INTO app_trip_planner__trip_members (id, trip_id, member_id, added_at) VALUES (?, ?, ?, strftime('%Y-%m-%dT%H:%M:%fZ','now','-90 days','+8 minutes'))",
+      "params": [
+        "perf-tm-027",
+        "perf-trip-07",
+        "{{partner}}"
+      ]
+    },
+    {
+      "sql": "INSERT INTO app_trip_planner__trip_members (id, trip_id, member_id, added_at) VALUES (?, ?, ?, strftime('%Y-%m-%dT%H:%M:%fZ','now','-90 days','+9 minutes'))",
+      "params": [
+        "perf-tm-028",
+        "perf-trip-07",
+        "{{adult2}}"
+      ]
+    },
+    {
+      "sql": "INSERT INTO app_trip_planner__trip_members (id, trip_id, member_id, added_at) VALUES (?, ?, ?, strftime('%Y-%m-%dT%H:%M:%fZ','now','-90 days','+10 minutes'))",
+      "params": [
+        "perf-tm-029",
+        "perf-trip-07",
+        "{{child}}"
+      ]
+    },
+    {
+      "sql": "INSERT INTO app_trip_planner__trip_members (id, trip_id, member_id, added_at) VALUES (?, ?, ?, strftime('%Y-%m-%dT%H:%M:%fZ','now','-90 days','+11 minutes'))",
+      "params": [
+        "perf-tm-030",
+        "perf-trip-07",
+        "{{child2}}"
+      ]
+    },
+    {
+      "sql": "INSERT INTO app_trip_planner__itinerary_items (id, trip_id, item_date, sort_order, time, title, description, category, confirmation_code, created_by, created_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, strftime('%Y-%m-%dT%H:%M:%fZ','now','-89 days','+0 minutes'))",
+      "params": [
+        "perf-it-043",
+        "perf-trip-07",
+        "{{date:-36}}",
+        0,
+        "08:00",
+        "Drive out",
+        "Leave by 8 to beat traffic.",
+        "transport",
+        "CNF1301",
+        "{{me}}"
+      ]
+    },
+    {
+      "sql": "INSERT INTO app_trip_planner__itinerary_items (id, trip_id, item_date, sort_order, time, title, description, category, booking_url, confirmation_code, created_by, created_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, strftime('%Y-%m-%dT%H:%M:%fZ','now','-89 days','+1 minutes'))",
+      "params": [
+        "perf-it-044",
+        "perf-trip-07",
+        "{{date:-36}}",
+        1,
+        "16:00",
+        "Check in",
+        "Confirmation is in the shared inbox.",
+        "accommodation",
+        "https://example.com/booking/44",
+        "CNF1308",
+        "{{partner}}"
+      ]
+    },
+    {
+      "sql": "INSERT INTO app_trip_planner__itinerary_items (id, trip_id, item_date, sort_order, time, title, description, category, booking_url, created_by, created_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, strftime('%Y-%m-%dT%H:%M:%fZ','now','-89 days','+2 minutes'))",
+      "params": [
+        "perf-it-045",
+        "perf-trip-07",
+        "{{date:-35}}",
+        2,
+        "18:30",
+        "Dinner in town",
+        "Booked for the whole group.",
+        "restaurant",
+        "https://example.com/booking/45",
+        "{{partner}}"
+      ]
+    },
+    {
+      "sql": "INSERT INTO app_trip_planner__itinerary_items (id, trip_id, item_date, sort_order, time, title, description, category, created_by, created_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, strftime('%Y-%m-%dT%H:%M:%fZ','now','-89 days','+3 minutes'))",
+      "params": [
+        "perf-it-046",
+        "perf-trip-07",
+        "{{date:-34}}",
+        3,
+        "09:30",
+        "Morning hike",
+        "Easy loop, about two hours.",
+        "activity",
+        "{{me}}"
+      ]
+    },
+    {
+      "sql": "INSERT INTO app_trip_planner__itinerary_items (id, trip_id, item_date, sort_order, time, title, description, category, created_by, created_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, strftime('%Y-%m-%dT%H:%M:%fZ','now','-89 days','+4 minutes'))",
+      "params": [
+        "perf-it-047",
+        "perf-trip-07",
+        "{{date:-34}}",
+        4,
+        "13:00",
+        "Afternoon on the water",
+        "Kayaks are first come first served.",
+        "activity",
+        "{{partner}}"
+      ]
+    },
+    {
+      "sql": "INSERT INTO app_trip_planner__itinerary_items (id, trip_id, item_date, sort_order, time, title, description, category, confirmation_code, created_by, created_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, strftime('%Y-%m-%dT%H:%M:%fZ','now','-89 days','+5 minutes'))",
+      "params": [
+        "perf-it-048",
+        "perf-trip-07",
+        "{{date:-33}}",
+        5,
+        "11:00",
+        "Head home",
+        "Check out by 11.",
+        "transport",
+        "CNF1336",
+        "{{partner}}"
+      ]
+    },
+    {
+      "sql": "INSERT INTO app_trip_planner__shared_packing_items (id, trip_id, label, checked, checked_by, checked_at, created_at) VALUES (?, ?, ?, ?, ?, strftime('%Y-%m-%dT%H:%M:%fZ','now','-2 days','+0 minutes'), strftime('%Y-%m-%dT%H:%M:%fZ','now','-88 days','+0 minutes'))",
+      "params": [
+        "perf-sp-021",
+        "perf-trip-07",
+        "First aid kit",
+        1,
+        "{{partner}}"
+      ]
+    },
+    {
+      "sql": "INSERT INTO app_trip_planner__shared_packing_items (id, trip_id, label, checked, checked_by, checked_at, created_at) VALUES (?, ?, ?, ?, ?, strftime('%Y-%m-%dT%H:%M:%fZ','now','-2 days','+1 minutes'), strftime('%Y-%m-%dT%H:%M:%fZ','now','-88 days','+1 minutes'))",
+      "params": [
+        "perf-sp-022",
+        "perf-trip-07",
+        "Cooler",
+        1,
+        "{{partner}}"
+      ]
+    },
+    {
+      "sql": "INSERT INTO app_trip_planner__trips (id, title, destination, start_date, end_date, status, notes, created_by, created_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, strftime('%Y-%m-%dT%H:%M:%fZ','now','-200 days','+7 minutes'))",
+      "params": [
+        "perf-trip-08",
+        "Summer Beach Week",
+        "Outer Banks, NC",
+        "{{date:-95}}",
+        "{{date:-88}}",
+        "completed",
+        "Best one yet. Same house next year if we can get it.",
+        "{{me}}"
+      ]
+    },
+    {
+      "sql": "INSERT INTO app_trip_planner__trip_members (id, trip_id, member_id, added_at) VALUES (?, ?, ?, strftime('%Y-%m-%dT%H:%M:%fZ','now','-200 days','+8 minutes'))",
+      "params": [
+        "perf-tm-031",
+        "perf-trip-08",
+        "{{me}}"
+      ]
+    },
+    {
+      "sql": "INSERT INTO app_trip_planner__trip_members (id, trip_id, member_id, added_at) VALUES (?, ?, ?, strftime('%Y-%m-%dT%H:%M:%fZ','now','-200 days','+9 minutes'))",
+      "params": [
+        "perf-tm-032",
+        "perf-trip-08",
+        "{{partner}}"
+      ]
+    },
+    {
+      "sql": "INSERT INTO app_trip_planner__trip_members (id, trip_id, member_id, added_at) VALUES (?, ?, ?, strftime('%Y-%m-%dT%H:%M:%fZ','now','-200 days','+10 minutes'))",
+      "params": [
+        "perf-tm-033",
+        "perf-trip-08",
+        "{{adult2}}"
+      ]
+    },
+    {
+      "sql": "INSERT INTO app_trip_planner__trip_members (id, trip_id, member_id, added_at) VALUES (?, ?, ?, strftime('%Y-%m-%dT%H:%M:%fZ','now','-200 days','+11 minutes'))",
+      "params": [
+        "perf-tm-034",
+        "perf-trip-08",
+        "{{child}}"
+      ]
+    },
+    {
+      "sql": "INSERT INTO app_trip_planner__trip_members (id, trip_id, member_id, added_at) VALUES (?, ?, ?, strftime('%Y-%m-%dT%H:%M:%fZ','now','-200 days','+12 minutes'))",
+      "params": [
+        "perf-tm-035",
+        "perf-trip-08",
+        "{{child2}}"
+      ]
+    },
+    {
+      "sql": "INSERT INTO app_trip_planner__itinerary_items (id, trip_id, item_date, sort_order, time, title, description, category, confirmation_code, created_by, created_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, strftime('%Y-%m-%dT%H:%M:%fZ','now','-199 days','+0 minutes'))",
+      "params": [
+        "perf-it-049",
+        "perf-trip-08",
+        "{{date:-95}}",
+        0,
+        "08:00",
+        "Drive out",
+        "Leave by 8 to beat traffic.",
+        "transport",
+        "CNF1343",
+        "{{partner}}"
+      ]
+    },
+    {
+      "sql": "INSERT INTO app_trip_planner__itinerary_items (id, trip_id, item_date, sort_order, time, title, description, category, booking_url, confirmation_code, created_by, created_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, strftime('%Y-%m-%dT%H:%M:%fZ','now','-199 days','+1 minutes'))",
+      "params": [
+        "perf-it-050",
+        "perf-trip-08",
+        "{{date:-94}}",
+        1,
+        "16:00",
+        "Check in",
+        "Confirmation is in the shared inbox.",
+        "accommodation",
+        "https://example.com/booking/50",
+        "CNF1350",
+        "{{me}}"
+      ]
+    },
+    {
+      "sql": "INSERT INTO app_trip_planner__itinerary_items (id, trip_id, item_date, sort_order, time, title, description, category, booking_url, created_by, created_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, strftime('%Y-%m-%dT%H:%M:%fZ','now','-199 days','+2 minutes'))",
+      "params": [
+        "perf-it-051",
+        "perf-trip-08",
+        "{{date:-93}}",
+        2,
+        "18:30",
+        "Dinner in town",
+        "Booked for the whole group.",
+        "restaurant",
+        "https://example.com/booking/51",
+        "{{me}}"
+      ]
+    },
+    {
+      "sql": "INSERT INTO app_trip_planner__itinerary_items (id, trip_id, item_date, sort_order, time, title, description, category, created_by, created_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, strftime('%Y-%m-%dT%H:%M:%fZ','now','-199 days','+3 minutes'))",
+      "params": [
+        "perf-it-052",
+        "perf-trip-08",
+        "{{date:-91}}",
+        3,
+        "09:30",
+        "Morning hike",
+        "Easy loop, about two hours.",
+        "activity",
+        "{{partner}}"
+      ]
+    },
+    {
+      "sql": "INSERT INTO app_trip_planner__itinerary_items (id, trip_id, item_date, sort_order, time, title, description, category, created_by, created_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, strftime('%Y-%m-%dT%H:%M:%fZ','now','-199 days','+4 minutes'))",
+      "params": [
+        "perf-it-053",
+        "perf-trip-08",
+        "{{date:-90}}",
+        4,
+        "13:00",
+        "Afternoon on the water",
+        "Kayaks are first come first served.",
+        "activity",
+        "{{me}}"
+      ]
+    },
+    {
+      "sql": "INSERT INTO app_trip_planner__itinerary_items (id, trip_id, item_date, sort_order, time, title, description, category, confirmation_code, created_by, created_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, strftime('%Y-%m-%dT%H:%M:%fZ','now','-199 days','+5 minutes'))",
+      "params": [
+        "perf-it-054",
+        "perf-trip-08",
+        "{{date:-88}}",
+        5,
+        "11:00",
+        "Head home",
+        "Check out by 11.",
+        "transport",
+        "CNF1378",
+        "{{me}}"
+      ]
+    },
+    {
+      "sql": "INSERT INTO app_trip_planner__shared_packing_items (id, trip_id, label, checked, checked_by, checked_at, created_at) VALUES (?, ?, ?, ?, ?, strftime('%Y-%m-%dT%H:%M:%fZ','now','-2 days','+0 minutes'), strftime('%Y-%m-%dT%H:%M:%fZ','now','-198 days','+0 minutes'))",
+      "params": [
+        "perf-sp-023",
+        "perf-trip-08",
+        "Cooler",
+        1,
+        "{{me}}"
+      ]
+    },
+    {
+      "sql": "INSERT INTO app_trip_planner__shared_packing_items (id, trip_id, label, checked, checked_by, checked_at, created_at) VALUES (?, ?, ?, ?, ?, strftime('%Y-%m-%dT%H:%M:%fZ','now','-2 days','+1 minutes'), strftime('%Y-%m-%dT%H:%M:%fZ','now','-198 days','+1 minutes'))",
+      "params": [
+        "perf-sp-024",
+        "perf-trip-08",
+        "Beach umbrella",
+        1,
+        "{{me}}"
+      ]
+    },
+    {
+      "sql": "INSERT INTO app_trip_planner__trips (id, title, destination, start_date, end_date, status, notes, created_by, created_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, strftime('%Y-%m-%dT%H:%M:%fZ','now','-240 days','+8 minutes'))",
+      "params": [
+        "perf-trip-09",
+        "Cousins' Wedding",
+        "Denver, CO",
+        "{{date:-150}}",
+        "{{date:-147}}",
+        "completed",
+        "Hotel block at the Marriott.",
+        "{{partner}}"
+      ]
+    },
+    {
+      "sql": "INSERT INTO app_trip_planner__trip_members (id, trip_id, member_id, added_at) VALUES (?, ?, ?, strftime('%Y-%m-%dT%H:%M:%fZ','now','-240 days','+9 minutes'))",
+      "params": [
+        "perf-tm-036",
+        "perf-trip-09",
+        "{{me}}"
+      ]
+    },
+    {
+      "sql": "INSERT INTO app_trip_planner__trip_members (id, trip_id, member_id, added_at) VALUES (?, ?, ?, strftime('%Y-%m-%dT%H:%M:%fZ','now','-240 days','+10 minutes'))",
+      "params": [
+        "perf-tm-037",
+        "perf-trip-09",
+        "{{partner}}"
+      ]
+    },
+    {
+      "sql": "INSERT INTO app_trip_planner__trip_members (id, trip_id, member_id, added_at) VALUES (?, ?, ?, strftime('%Y-%m-%dT%H:%M:%fZ','now','-240 days','+11 minutes'))",
+      "params": [
+        "perf-tm-038",
+        "perf-trip-09",
+        "{{child}}"
+      ]
+    },
+    {
+      "sql": "INSERT INTO app_trip_planner__trip_members (id, trip_id, member_id, added_at) VALUES (?, ?, ?, strftime('%Y-%m-%dT%H:%M:%fZ','now','-240 days','+12 minutes'))",
+      "params": [
+        "perf-tm-039",
+        "perf-trip-09",
+        "{{child2}}"
+      ]
+    },
+    {
+      "sql": "INSERT INTO app_trip_planner__itinerary_items (id, trip_id, item_date, sort_order, time, title, description, category, confirmation_code, created_by, created_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, strftime('%Y-%m-%dT%H:%M:%fZ','now','-239 days','+0 minutes'))",
+      "params": [
+        "perf-it-055",
+        "perf-trip-09",
+        "{{date:-150}}",
+        0,
+        "08:00",
+        "Drive out",
+        "Leave by 8 to beat traffic.",
+        "transport",
+        "CNF1385",
+        "{{me}}"
+      ]
+    },
+    {
+      "sql": "INSERT INTO app_trip_planner__itinerary_items (id, trip_id, item_date, sort_order, time, title, description, category, booking_url, confirmation_code, created_by, created_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, strftime('%Y-%m-%dT%H:%M:%fZ','now','-239 days','+1 minutes'))",
+      "params": [
+        "perf-it-056",
+        "perf-trip-09",
+        "{{date:-150}}",
+        1,
+        "16:00",
+        "Check in",
+        "Confirmation is in the shared inbox.",
+        "accommodation",
+        "https://example.com/booking/56",
+        "CNF1392",
+        "{{partner}}"
+      ]
+    },
+    {
+      "sql": "INSERT INTO app_trip_planner__itinerary_items (id, trip_id, item_date, sort_order, time, title, description, category, booking_url, created_by, created_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, strftime('%Y-%m-%dT%H:%M:%fZ','now','-239 days','+2 minutes'))",
+      "params": [
+        "perf-it-057",
+        "perf-trip-09",
+        "{{date:-149}}",
+        2,
+        "18:30",
+        "Dinner in town",
+        "Booked for the whole group.",
+        "restaurant",
+        "https://example.com/booking/57",
+        "{{partner}}"
+      ]
+    },
+    {
+      "sql": "INSERT INTO app_trip_planner__itinerary_items (id, trip_id, item_date, sort_order, time, title, description, category, created_by, created_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, strftime('%Y-%m-%dT%H:%M:%fZ','now','-239 days','+3 minutes'))",
+      "params": [
+        "perf-it-058",
+        "perf-trip-09",
+        "{{date:-148}}",
+        3,
+        "09:30",
+        "Morning hike",
+        "Easy loop, about two hours.",
+        "activity",
+        "{{me}}"
+      ]
+    },
+    {
+      "sql": "INSERT INTO app_trip_planner__itinerary_items (id, trip_id, item_date, sort_order, time, title, description, category, created_by, created_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, strftime('%Y-%m-%dT%H:%M:%fZ','now','-239 days','+4 minutes'))",
+      "params": [
+        "perf-it-059",
+        "perf-trip-09",
+        "{{date:-148}}",
+        4,
+        "13:00",
+        "Afternoon on the water",
+        "Kayaks are first come first served.",
+        "activity",
+        "{{partner}}"
+      ]
+    },
+    {
+      "sql": "INSERT INTO app_trip_planner__itinerary_items (id, trip_id, item_date, sort_order, time, title, description, category, confirmation_code, created_by, created_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, strftime('%Y-%m-%dT%H:%M:%fZ','now','-239 days','+5 minutes'))",
+      "params": [
+        "perf-it-060",
+        "perf-trip-09",
+        "{{date:-147}}",
+        5,
+        "11:00",
+        "Head home",
+        "Check out by 11.",
+        "transport",
+        "CNF1420",
+        "{{partner}}"
+      ]
+    },
+    {
+      "sql": "INSERT INTO app_trip_planner__shared_packing_items (id, trip_id, label, checked, checked_by, checked_at, created_at) VALUES (?, ?, ?, ?, ?, strftime('%Y-%m-%dT%H:%M:%fZ','now','-2 days','+0 minutes'), strftime('%Y-%m-%dT%H:%M:%fZ','now','-238 days','+0 minutes'))",
+      "params": [
+        "perf-sp-025",
+        "perf-trip-09",
+        "Beach umbrella",
+        1,
+        "{{partner}}"
+      ]
+    },
+    {
+      "sql": "INSERT INTO app_trip_planner__shared_packing_items (id, trip_id, label, checked, checked_by, checked_at, created_at) VALUES (?, ?, ?, ?, ?, strftime('%Y-%m-%dT%H:%M:%fZ','now','-2 days','+1 minutes'), strftime('%Y-%m-%dT%H:%M:%fZ','now','-238 days','+1 minutes'))",
+      "params": [
+        "perf-sp-026",
+        "perf-trip-09",
+        "Car snacks",
+        1,
+        "{{partner}}"
+      ]
+    },
+    {
+      "sql": "INSERT INTO app_trip_planner__trips (id, title, destination, start_date, end_date, status, notes, created_by, created_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, strftime('%Y-%m-%dT%H:%M:%fZ','now','-220 days','+9 minutes'))",
+      "params": [
+        "perf-trip-10",
+        "Fourth of July in Boston",
+        "Boston, MA",
+        "{{date:-100}}",
+        "{{date:-96}}",
+        "cancelled",
+        "Cancelled, flights got too expensive.",
+        "{{adult2}}"
+      ]
+    },
+    {
+      "sql": "INSERT INTO app_trip_planner__trip_members (id, trip_id, member_id, added_at) VALUES (?, ?, ?, strftime('%Y-%m-%dT%H:%M:%fZ','now','-220 days','+10 minutes'))",
+      "params": [
+        "perf-tm-040",
+        "perf-trip-10",
+        "{{adult2}}"
+      ]
+    },
+    {
+      "sql": "INSERT INTO app_trip_planner__trip_members (id, trip_id, member_id, added_at) VALUES (?, ?, ?, strftime('%Y-%m-%dT%H:%M:%fZ','now','-220 days','+11 minutes'))",
+      "params": [
+        "perf-tm-041",
+        "perf-trip-10",
+        "{{me}}"
+      ]
+    },
+    {
+      "sql": "INSERT INTO app_trip_planner__itinerary_items (id, trip_id, item_date, sort_order, time, title, description, category, confirmation_code, created_by, created_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, strftime('%Y-%m-%dT%H:%M:%fZ','now','-219 days','+0 minutes'))",
+      "params": [
+        "perf-it-061",
+        "perf-trip-10",
+        "{{date:-100}}",
+        0,
+        "08:00",
+        "Drive out",
+        "Leave by 8 to beat traffic.",
+        "transport",
+        "CNF1427",
+        "{{me}}"
+      ]
+    },
+    {
+      "sql": "INSERT INTO app_trip_planner__itinerary_items (id, trip_id, item_date, sort_order, time, title, description, category, booking_url, confirmation_code, created_by, created_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, strftime('%Y-%m-%dT%H:%M:%fZ','now','-219 days','+1 minutes'))",
+      "params": [
+        "perf-it-062",
+        "perf-trip-10",
+        "{{date:-96}}",
+        1,
+        "16:00",
+        "Check in",
+        "Confirmation is in the shared inbox.",
+        "accommodation",
+        "https://example.com/booking/62",
+        "CNF1434",
+        "{{adult2}}"
+      ]
+    }
+  ]
+}
