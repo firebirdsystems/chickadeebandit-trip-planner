@@ -1,7 +1,7 @@
 {
   "scenarios": [
     {
-      "name": "an adult sees another member's packing list only once that member is on the trip; my progress counts only my own items",
+      "name": "an adult sees another member's packing list only once that member is on the trip; my progress counts only my own items; the shared list's controls are an adult's, not a child's",
       "members": {
         "parent": "adult",
         "kid": "child"
@@ -137,6 +137,66 @@
           "as": "parent",
           "selector": "[data-testid=\"pack-section\"][data-list=\"mine\"] [data-testid=\"pack-progress\"]",
           "text": "25%"
+        },
+        {
+          "action": "open",
+          "as": "kid"
+        },
+        {
+          "action": "click",
+          "as": "kid",
+          "selector": "[data-testid=\"trip-card\"][data-trip-id=\"t1\"]"
+        },
+        {
+          "action": "click",
+          "as": "kid",
+          "selector": "[data-testid=\"trip-tab\"][data-tab=\"packing\"]"
+        },
+        {
+          "action": "expectVisible",
+          "as": "kid",
+          "selector": "[data-testid=\"pack-section\"][data-list=\"mine\"] [data-testid=\"pack-add\"]"
+        },
+        {
+          "action": "expectVisible",
+          "as": "kid",
+          "selector": "[data-testid=\"pack-section\"][data-list=\"shared\"] [data-testid=\"pack-item\"][data-pack-id=\"s-1\"]"
+        },
+        {
+          "action": "expectCount",
+          "as": "kid",
+          "selector": "[data-testid=\"pack-section\"][data-list=\"shared\"] [data-testid=\"pack-add\"]",
+          "count": 0
+        },
+        {
+          "action": "expectCount",
+          "as": "kid",
+          "selector": "[data-testid=\"pack-section\"][data-list=\"shared\"] [data-testid=\"pack-remove\"]",
+          "count": 0
+        },
+        {
+          "action": "open",
+          "as": "parent"
+        },
+        {
+          "action": "click",
+          "as": "parent",
+          "selector": "[data-testid=\"trip-card\"][data-trip-id=\"t1\"]"
+        },
+        {
+          "action": "click",
+          "as": "parent",
+          "selector": "[data-testid=\"trip-tab\"][data-tab=\"packing\"]"
+        },
+        {
+          "action": "expectVisible",
+          "as": "parent",
+          "selector": "[data-testid=\"pack-section\"][data-list=\"shared\"] [data-testid=\"pack-add\"]"
+        },
+        {
+          "action": "expectVisible",
+          "as": "parent",
+          "selector": "[data-testid=\"pack-section\"][data-list=\"shared\"] [data-testid=\"pack-remove\"]"
         }
       ]
     },
@@ -273,6 +333,132 @@
           "action": "expectVisible",
           "as": "parent",
           "selector": "[data-testid=\"outside-dates-section\"] [data-testid=\"itin-item-actions\"][data-item-id=\"i-out\"]"
+        }
+      ]
+    },
+    {
+      "name": "in a shared space a participant sees only their own packing list and may still delete a trip; the steward sees every traveler's list",
+      "context": "shared_space",
+      "members": {
+        "steward": "admin",
+        "pat": "adult",
+        "sam": "adult"
+      },
+      "steps": [
+        {
+          "action": "seedRaw",
+          "sql": "INSERT INTO app_trip_planner__trips (id, title, destination, start_date, end_date, status, created_by, created_at) VALUES ('t1', 'Club retreat', 'Lake house', '2099-07-01', '2099-07-03', 'planning', ?, '2026-01-01T00:00:00Z')",
+          "params": [
+            "{{pat}}"
+          ]
+        },
+        {
+          "action": "seedRaw",
+          "sql": "INSERT INTO app_trip_planner__trip_members (id, trip_id, member_id, added_at) VALUES ('tm-pat', 't1', ?, '2026-01-01T00:00:00Z'), ('tm-sam', 't1', ?, '2026-01-01T00:00:00Z')",
+          "params": [
+            "{{pat}}",
+            "{{sam}}"
+          ]
+        },
+        {
+          "action": "seedRaw",
+          "sql": "INSERT INTO app_trip_planner__packing_items (id, trip_id, member_id, label, checked, created_at) VALUES ('p-pat', 't1', ?, 'Sleeping bag', 0, '2026-01-02T00:00:00Z'), ('p-sam', 't1', ?, 'Tent', 0, '2026-01-02T00:00:01Z')",
+          "params": [
+            "{{pat}}",
+            "{{sam}}"
+          ]
+        },
+        {
+          "action": "open",
+          "as": "pat"
+        },
+        {
+          "action": "click",
+          "as": "pat",
+          "selector": "[data-testid=\"trip-card\"][data-trip-id=\"t1\"]"
+        },
+        {
+          "action": "click",
+          "as": "pat",
+          "selector": "[data-testid=\"trip-tab\"][data-tab=\"packing\"]"
+        },
+        {
+          "action": "expectVisible",
+          "as": "pat",
+          "selector": "[data-testid=\"pack-item\"][data-pack-id=\"p-pat\"]"
+        },
+        {
+          "action": "expectCount",
+          "as": "pat",
+          "selector": "[data-testid=\"pack-item\"][data-pack-id=\"p-sam\"]",
+          "count": 0
+        },
+        {
+          "action": "expectCount",
+          "as": "pat",
+          "selector": "[data-testid=\"pack-section\"][data-list=\"member\"]",
+          "count": 0
+        },
+        {
+          "action": "expectVisible",
+          "as": "pat",
+          "selector": "[data-testid=\"pack-scope-note\"]"
+        },
+        {
+          "action": "expectVisible",
+          "as": "pat",
+          "selector": "[data-testid=\"pack-section\"][data-list=\"shared\"] [data-testid=\"pack-add\"]"
+        },
+        {
+          "action": "click",
+          "as": "pat",
+          "selector": "[data-testid=\"trip-tab\"][data-tab=\"details\"]"
+        },
+        {
+          "action": "expectVisible",
+          "as": "pat",
+          "selector": "[data-testid=\"trip-delete\"]"
+        },
+        {
+          "action": "open",
+          "as": "steward"
+        },
+        {
+          "action": "click",
+          "as": "steward",
+          "selector": "[data-testid=\"trip-card\"][data-trip-id=\"t1\"]"
+        },
+        {
+          "action": "click",
+          "as": "steward",
+          "selector": "[data-testid=\"trip-tab\"][data-tab=\"packing\"]"
+        },
+        {
+          "action": "expectCount",
+          "as": "steward",
+          "selector": "[data-testid=\"pack-section\"][data-list=\"member\"]",
+          "count": 2
+        },
+        {
+          "action": "expectVisible",
+          "as": "steward",
+          "selector": "[data-testid=\"pack-item\"][data-pack-id=\"p-sam\"]"
+        },
+        {
+          "action": "expectCount",
+          "as": "steward",
+          "selector": "[data-testid=\"pack-scope-note\"]",
+          "count": 0
+        },
+        {
+          "action": "click",
+          "as": "steward",
+          "selector": "[data-testid=\"trip-tab\"][data-tab=\"details\"]"
+        },
+        {
+          "action": "expectVisible",
+          "as": "steward",
+          "selector": "[data-testid=\"trip-delete\"]"
         }
       ]
     }

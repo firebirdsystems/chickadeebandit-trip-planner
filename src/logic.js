@@ -104,3 +104,53 @@ export function safeHttpUrl(value) {
 export function searchableFields(item) {
   return [item.title, item.destination, item.notes, item.status];
 }
+
+function isAdultMember(member) {
+  return !!member && (member.role === "adult" || member.role === "admin");
+}
+
+/**
+ * Whether a member sees and edits other travelers' personal packing lists.
+ * Mirrors the hub's rule for the packing_items table (owner_only): any adult
+ * in a household, and only the steward in a shared space. Anyone else reads
+ * and writes their own list alone.
+ */
+export function supervisesPacking(member, { tenantKind = "household", isAdmin = false } = {}) {
+  return tenantKind === "household" ? isAdultMember(member) : isAdmin === true;
+}
+
+/** Whether a member may add to the list belonging to `listMemberId`. Null is
+ *  the shared list, which any adult adds to (the hub's adult_writable rule for
+ *  shared_packing_items); a personal list is for its owner and whoever
+ *  supervises. */
+export function canAddToPackingList(listMemberId, member, tenant) {
+  if (listMemberId === null) return isAdultMember(member);
+  return listMemberId === member?.id || supervisesPacking(member, tenant);
+}
+
+/** Whether a member may tick or remove a packing item: any adult on the shared
+ *  list, anyone on their own items, and other travelers' items only for
+ *  whoever supervises. */
+export function canEditPackingItem(item, member, tenant) {
+  if (item.shared) return isAdultMember(member);
+  return item.member_id === member?.id || supervisesPacking(member, tenant);
+}
+
+/**
+ * Every item of a list the hub serves a page at a time. `fetchPage(cursor)`
+ * resolves to `{ items, next }`, where `next` is the cursor for the following
+ * page or null on the last one. Throws what `fetchPage` throws, so a caller
+ * never mistakes a partial list for the whole one. `maxPages` bounds a server
+ * that keeps handing back a cursor.
+ */
+export async function collectPages(fetchPage, maxPages = 100) {
+  const all = [];
+  let cursor = null;
+  for (let page = 0; page < maxPages; page++) {
+    const { items, next } = await fetchPage(cursor);
+    all.push(...(items ?? []));
+    if (!next) return all;
+    cursor = next;
+  }
+  throw new Error("The list did not end.");
+}

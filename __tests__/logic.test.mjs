@@ -10,6 +10,7 @@ import {
   safeHttpUrl,
   CAT_ICONS,
   STATUS_LABELS, searchableFields,
+  supervisesPacking, canAddToPackingList, canEditPackingItem, collectPages,
 } from "../src/logic.js";
 
 // ── nightCount ────────────────────────────────────────────────────────────────
@@ -235,5 +236,89 @@ describe("outsideTripDates", () => {
 
   it("is empty when every dated item fits the trip", () => {
     expect(outsideTripDates(items, "2026-06-01", "2026-08-01")).toEqual([]);
+  });
+});
+
+describe("who supervises packing lists", () => {
+  const adult = { id: "a1", role: "adult" };
+  const child = { id: "c1", role: "child" };
+  const participant = { tenantKind: "shared_space", spaceKind: "general", isAdmin: false };
+  const steward = { tenantKind: "shared_space", spaceKind: "general", isAdmin: true };
+  const coparentSteward = { tenantKind: "shared_space", spaceKind: "coparenting", isAdmin: true };
+
+  it("a household is the default, where any adult supervises", () => {
+    expect(supervisesPacking(adult)).toBe(true);
+    expect(supervisesPacking(child)).toBe(false);
+    expect(supervisesPacking(null)).toBe(false);
+    expect(supervisesPacking(child, { tenantKind: "household", isAdmin: true })).toBe(false);
+  });
+
+  it("only the steward supervises in a shared space", () => {
+    expect(supervisesPacking(adult, participant)).toBe(false);
+    expect(supervisesPacking(adult, steward)).toBe(true);
+    expect(supervisesPacking(adult, coparentSteward)).toBe(true);
+  });
+
+  it("lets any adult add to the shared list, and anyone to their own", () => {
+    for (const tenant of [undefined, participant, steward]) {
+      expect(canAddToPackingList(null, adult, tenant)).toBe(true);
+      expect(canAddToPackingList("a1", adult, tenant)).toBe(true);
+    }
+    expect(canAddToPackingList("c1", child)).toBe(true);
+  });
+
+  it("keeps the shared list from a child, whose write the hub refuses", () => {
+    expect(canAddToPackingList(null, child)).toBe(false);
+    expect(canAddToPackingList(null, null)).toBe(false);
+    expect(canEditPackingItem({ shared: true, member_id: null }, child)).toBe(false);
+  });
+
+  it("lets only a supervisor add to another traveler's list", () => {
+    expect(canAddToPackingList("c1", adult)).toBe(true);
+    expect(canAddToPackingList("a1", child)).toBe(false);
+    expect(canAddToPackingList("c1", adult, participant)).toBe(false);
+    expect(canAddToPackingList("c1", adult, steward)).toBe(true);
+  });
+
+  it("lets any adult edit shared items, and anyone their own items", () => {
+    expect(canEditPackingItem({ shared: true, member_id: null }, adult, participant)).toBe(true);
+    expect(canEditPackingItem({ shared: true, member_id: null }, adult)).toBe(true);
+    expect(canEditPackingItem({ shared: false, member_id: "a1" }, adult, participant)).toBe(true);
+    expect(canEditPackingItem({ shared: false, member_id: "c1" }, child)).toBe(true);
+  });
+
+  it("lets only a supervisor edit another traveler's item", () => {
+    const theirs = { shared: false, member_id: "c1" };
+    expect(canEditPackingItem(theirs, adult)).toBe(true);
+    expect(canEditPackingItem(theirs, adult, participant)).toBe(false);
+    expect(canEditPackingItem(theirs, adult, steward)).toBe(true);
+    expect(canEditPackingItem({ shared: false, member_id: "a1" }, child)).toBe(false);
+  });
+});
+
+describe("collectPages", () => {
+  const pages = { start: { items: [1, 2], next: "b" }, b: { items: [3], next: "c" }, c: { items: [4], next: null } };
+
+  it("follows the cursor to the last page and returns every item in order", async () => {
+    const asked = [];
+    const all = await collectPages(async cursor => { asked.push(cursor); return pages[cursor ?? "start"]; });
+    expect(all).toEqual([1, 2, 3, 4]);
+    expect(asked).toEqual([null, "b", "c"]);
+  });
+
+  it("returns a single page that names no next one", async () => {
+    expect(await collectPages(async () => ({ items: ["only"], next: null }))).toEqual(["only"]);
+    expect(await collectPages(async () => ({ items: [] }))).toEqual([]);
+  });
+
+  it("fails rather than return the pages read before one that could not be", async () => {
+    await expect(collectPages(async cursor => {
+      if (cursor === "b") throw new Error("offline");
+      return pages[cursor ?? "start"];
+    })).rejects.toThrow("offline");
+  });
+
+  it("stops on a list that never ends", async () => {
+    await expect(collectPages(async () => ({ items: [0], next: "again" }), 3)).rejects.toThrow("did not end");
   });
 });

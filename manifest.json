@@ -82,6 +82,14 @@
       "kind": "adult_writable"
     }
   },
+  "delete_cascades": {
+    "trips": [
+      { "table": "trip_members", "foreign_key": "trip_id" },
+      { "table": "itinerary_items", "foreign_key": "trip_id" },
+      { "table": "packing_items", "foreign_key": "trip_id" },
+      { "table": "shared_packing_items", "foreign_key": "trip_id" }
+    ]
+  },
   "shareable": {
     "trip": {
       "table": "trips",

@@ -232,6 +232,68 @@
           "expect": { "status": 200, "rowCount": 1, "rowsContain": [{ "checked": 1 }] }
         }
       ]
+    },
+    {
+      "name": "in a shared space a participant adult deletes a trip, and every traveler's packing list goes with it",
+      "context": "shared_space",
+      "members": { "a": "adult", "b": "adult", "steward": "admin" },
+      "steps": [
+        {
+          "action": "seedRaw",
+          "sql": "INSERT INTO app_trip_planner__trips (id, title, start_date, end_date, created_by, created_at) VALUES ('trip1', 'Club retreat', '2026-10-10', '2026-10-12', ?, '2026-09-01T09:00:00Z'), ('trip2', 'Day hike', '2026-11-01', '2026-11-01', ?, '2026-09-01T09:00:00Z')",
+          "params": ["{{a}}", "{{a}}"]
+        },
+        {
+          "action": "seedRaw",
+          "sql": "INSERT INTO app_trip_planner__trip_members (id, trip_id, member_id, added_at) VALUES ('tm-b', 'trip1', ?, '2026-09-02T09:00:00Z')",
+          "params": ["{{b}}"]
+        },
+        {
+          "action": "seedRaw",
+          "sql": "INSERT INTO app_trip_planner__itinerary_items (id, trip_id, title, created_by, created_at) VALUES ('it-1', 'trip1', 'Arrive', ?, '2026-09-02T09:00:00Z')",
+          "params": ["{{a}}"]
+        },
+        {
+          "action": "seedRaw",
+          "sql": "INSERT INTO app_trip_planner__packing_items (id, trip_id, member_id, label, created_at) VALUES ('pk-b', 'trip1', ?, 'Tent', '2026-09-02T09:00:00Z'), ('pk-b2', 'trip2', ?, 'Boots', '2026-09-02T09:00:00Z')",
+          "params": ["{{b}}", "{{b}}"]
+        },
+        {
+          "action": "seedRaw",
+          "sql": "INSERT INTO app_trip_planner__shared_packing_items (id, trip_id, label, created_at) VALUES ('sp-1', 'trip1', 'First aid kit', '2026-09-02T09:00:00Z')"
+        },
+        {
+          "action": "db",
+          "as": "a",
+          "sql": "DELETE FROM app_trip_planner__trips WHERE id = ? RETURNING id",
+          "params": ["trip1"],
+          "expect": { "status": 200, "rowCount": 1 }
+        },
+        {
+          "action": "db",
+          "as": "steward",
+          "sql": "SELECT id FROM app_trip_planner__packing_items",
+          "expect": { "status": 200, "rowCount": 1, "rowsContain": [{ "id": "pk-b2" }] }
+        },
+        {
+          "action": "db",
+          "as": "steward",
+          "sql": "SELECT id FROM app_trip_planner__trip_members",
+          "expect": { "status": 200, "rowCount": 0 }
+        },
+        {
+          "action": "db",
+          "as": "steward",
+          "sql": "SELECT id FROM app_trip_planner__itinerary_items",
+          "expect": { "status": 200, "rowCount": 0 }
+        },
+        {
+          "action": "db",
+          "as": "steward",
+          "sql": "SELECT id FROM app_trip_planner__shared_packing_items",
+          "expect": { "status": 200, "rowCount": 0 }
+        }
+      ]
     }
   ]
 }

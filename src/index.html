@@ -293,6 +293,7 @@
       CAT_ICONS, STATUS_LABELS,
       nightCount, dateRange, dayLabel, formatDateRange,
       packingProgress, sortItinerary, outsideTripDates, safeHttpUrl, searchableFields,
+      supervisesPacking, canAddToPackingList, canEditPackingItem, collectPages,
     } from "./logic.js";
 
     // ── Runtime globals ──────────────────────────────────────────────────────
@@ -302,6 +303,11 @@
     const DOCS    = window.__DOCS_URL     ?? "";
     const FILES   = window.__FILES_URL    ?? "";
     const ME      = window.__CURRENT_MEMBER ?? null;
+    // Other travelers' personal packing lists: any adult at home, only the
+    // steward in a shared space. The hub decides; this keeps the page from
+    // offering lists that would come back empty and writes that change nothing.
+    const TENANT  = { tenantKind: window.__TENANT_KIND ?? "household", spaceKind: window.__SPACE_KIND ?? null, isAdmin: window.__IS_ADMIN === true };
+    const SUPERVISES_PACKING = !ME || supervisesPacking(ME, TENANT);
 const EVENTS  = window.__EVENTS_URL   ?? "";
 
 // Best-effort: the row is already written, so a failed publish is not fatal.
@@ -381,20 +387,17 @@ let searchQ = "";       // in-app search (see logic.js searchableFields)
       return json;
     }
 
-    /** Several statements as one transaction — all apply, or none does. */
-    async function dbBatch(statements) {
-      if (!DB || statements.length === 0) return { results: [] };
-      const res = await fetch(DB, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ statements }),
+    // ── Load functions ───────────────────────────────────────────────────────
+    /** Every document uploaded to a trip. The hub lists them a page at a time
+     *  and names the next page in a header; throws if any page cannot be read. */
+    function loadTripDocs(tripId) {
+      return collectPages(async cursor => {
+        const res = await fetch(`${DOCS}?sourceId=${encodeURIComponent(tripId)}&limit=100${cursor ? `&cursor=${encodeURIComponent(cursor)}` : ""}`);
+        if (!res.ok) throw new Error(`Could not list documents (${res.status})`);
+        return { items: await res.json(), next: res.headers.get("X-Documents-Next-Cursor") };
       });
-      const json = await res.json();
-      if (!res.ok || json.error) throw new Error(json.error || `Database request failed (${res.status})`);
-      return json;
     }
 
-    // ── Load functions ───────────────────────────────────────────────────────
     async function loadMembers() {
       if (!CONTEXT) {
         members = [
@@ -452,10 +455,7 @@ let searchQ = "";       // in-app search (see logic.js searchableFields)
       tripDocs       = [];
 
       if (DOCS) {
-        try {
-          const res = await fetch(`${DOCS}?sourceId=${encodeURIComponent(tripId)}`);
-          if (res.ok) tripDocs = await res.json();
-        } catch { /* non-fatal */ }
+        try { tripDocs = await loadTripDocs(tripId); } catch { /* non-fatal */ }
       }
     }
 
@@ -714,19 +714,18 @@ let searchQ = "";       // in-app search (see logic.js searchableFields)
     // ── Packing tab ──────────────────────────────────────────────────────────
     function renderPacking() {
       const myId    = ME?.id ?? null;
-      const isAdmin = !ME || isAdult(ME);
 
       const myItems     = myId ? packingItems.filter(i => i.member_id === myId) : [];
       const sharedItems = packingItems.filter(i => !i.member_id);
-      const otherTravelers = isAdmin && myId
+      const otherTravelers = SUPERVISES_PACKING && myId
         ? members.filter(m => m.id !== myId && tripMembers.includes(m.id))
         : [];
 
       function section(title, items, memberId) {
         const pct  = packingProgress(items);
-        // Shared list (memberId === null) is collaborative — any member may add.
-        // A specific member's personal list stays adult-or-owner only.
-        const canAdd = !ME || isAdult(ME) || memberId === myId || memberId === null;
+        // The shared list (memberId === null) is any adult's to add to. A specific
+        // member's personal list is for its owner and whoever supervises.
+        const canAdd = !ME || canAddToPackingList(memberId, ME, TENANT);
         return `
           <div class="pack-section" data-testid="pack-section" data-list="${memberId === null ? "shared" : memberId === myId ? "mine" : "member"}" data-member-id="${esc(memberId ?? "")}">
             <div class="pack-section-header">
@@ -735,7 +734,7 @@ let searchQ = "";       // in-app search (see logic.js searchableFields)
             </div>
             ${items.map(i => packItemHtml(i, myId)).join("")}
             ${items.length === 0 ? `<p class="muted" style="padding:4px 0 6px">Nothing added yet.</p>` : ""}
-            ${canAdd ? `<button class="btn-add" onclick="window._addPacking(${memberId ? jsArg(memberId) : "null"})">+ Add item</button>` : ""}
+            ${canAdd ? `<button class="btn-add" data-testid="pack-add" onclick="window._addPacking(${memberId ? jsArg(memberId) : "null"})">+ Add item</button>` : ""}
           </div>
         `;
       }
@@ -748,15 +747,16 @@ let searchQ = "";       // in-app search (see logic.js searchableFields)
             const items = packingItems.filter(i => i.member_id === m.id);
             return section(`${m.name}'s list`, items, m.id);
           }).join("")}
+          ${ME && isAdult(ME) && !SUPERVISES_PACKING ? `<p class="muted" data-testid="pack-scope-note">In a shared space, the steward sees everyone's lists.</p>` : ""}
         </div>
       `;
     }
 
     function packItemHtml(item, myId) {
-      // Shared items are collaborative: any member may tick or remove them.
-      // Personal items stay adult-or-owner only.
-      const canToggle = !ME || isAdult(ME) || item.shared || (item.member_id === myId);
-      const canDelete = !ME || isAdult(ME) || item.shared || (item.member_id === myId);
+      // Shared items are any adult's to tick or remove. Personal items are for
+      // their owner and whoever supervises.
+      const canToggle = !ME || canEditPackingItem(item, ME, TENANT);
+      const canDelete = canToggle;
       const checkerName = item.checked_by ? (memberMap.get(item.checked_by)?.name ?? item.checked_by) : null;
       return `
         <div class="pack-item${item.checked ? " is-checked" : ""}" data-testid="pack-item" data-pack-id="${esc(item.id)}">
@@ -766,7 +766,7 @@ let searchQ = "";       // in-app search (see logic.js searchableFields)
           >${item.checked ? glyph("tick") : ""}</button>
           <span class="pack-label">${esc(item.label)}</span>
           ${checkerName && item.checked ? `<span class="checked-by">${esc(checkerName)}</span>` : ""}
-          ${canDelete ? `<button class="btn-icon-sm" title="Remove" onclick="window._deletePacking(${jsArg(item.id)})">×</button>` : ""}
+          ${canDelete ? `<button class="btn-icon-sm" data-testid="pack-remove" title="Remove" onclick="window._deletePacking(${jsArg(item.id)})">×</button>` : ""}
         </div>
       `;
     }
@@ -837,7 +837,7 @@ let searchQ = "";       // in-app search (see logic.js searchableFields)
 
           ${isAdmin ? `
             <div class="danger-zone">
-              <button class="btn-danger" onclick="window._deleteTrip()">Delete trip</button>
+              <button class="btn-danger" data-testid="trip-delete" onclick="window._deleteTrip()">Delete trip</button>
             </div>
           ` : ""}
         </div>
@@ -1355,29 +1355,46 @@ let searchQ = "";       // in-app search (see logic.js searchableFields)
     window._deleteTrip = async function() {
       const ok = await hubConfirm({
         message:      `Delete "${currentTrip.title}"?`,
-        description:  "This will permanently remove the trip, all itinerary items, and packing lists.",
+        description:  `This will permanently remove the trip, all itinerary items, and packing lists${tripDocs.length ? `, and the ${tripDocs.length === 1 ? "document" : `${tripDocs.length} documents`} uploaded to it` : ""}.`,
         confirmLabel: "Delete",
         destructive:  true,
       });
       if (!ok) return;
 
       const tripId = currentTrip.id;
-      // One transaction. As five concurrent requests, any subset could fail —
-      // most damagingly the trip row surviving while its itinerary and packing
-      // lists were gone, which reads to everyone as "the trip lost all its
-      // contents" rather than as a failed delete.
+      // One statement. The manifest's delete_cascades takes the trip's
+      // travelers, itinerary and both packing lists with it in the same
+      // transaction, including personal lists the caller cannot read.
       try {
-        await dbBatch([
-          { sql: `DELETE FROM app_trip_planner__trip_members WHERE trip_id=?`, params: [tripId] },
-          { sql: `DELETE FROM app_trip_planner__itinerary_items WHERE trip_id=?`, params: [tripId] },
-          { sql: `DELETE FROM app_trip_planner__packing_items WHERE trip_id=?`, params: [tripId] },
-          { sql: `DELETE FROM app_trip_planner__shared_packing_items WHERE trip_id=?`, params: [tripId] },
-          { sql: `DELETE FROM app_trip_planner__trips WHERE id=?`, params: [tripId] },
-        ]);
+        const { changed } = await db(`DELETE FROM app_trip_planner__trips WHERE id=?`, [tripId]);
+        if (DB && changed === 0) throw new Error("The trip is no longer there, or it is not yours to delete.");
       } catch (e) {
         await hubAlert("Could not delete this trip.", { description: e.message });
         return;
       }
+
+      // The trip's uploaded documents live in the household's documents, not in
+      // this app's tables, so no cascade reaches them. Read the list again, in
+      // full: the one drawn with the trip is empty whenever that earlier read
+      // failed. If it cannot be read now either, say so rather than pass off
+      // what is known as everything.
+      let docs = tripDocs;
+      let listUnread = false;
+      if (DOCS) {
+        try { docs = await loadTripDocs(tripId); } catch { listUnread = true; }
+      }
+      const removed = await Promise.all(docs.map(async doc => {
+        try {
+          const res = await fetch(`${DOCS}/${doc.id}`, { method: "DELETE" });
+          if (!res.ok) return false;
+          if (doc.fileKey) await filesHelper.delete(doc.fileKey).catch(() => {});
+          return true;
+        } catch { return false; }
+      }));
+      const kept = removed.filter(ok => !ok).length;
+      tripDocs = [];
+      if (kept) await hubAlert("The trip was deleted, but not all of its documents.", { description: `${kept === 1 ? "One document" : `${kept} documents`} could not be removed and ${kept === 1 ? "is" : "are"} still in Documents.` });
+      else if (listUnread) await hubAlert("The trip was deleted, but its documents could not be listed.", { description: "Any that were uploaded to it may still be in Documents." });
 
       trips = trips.filter(t => t.id !== tripId);
       await publishTrips();

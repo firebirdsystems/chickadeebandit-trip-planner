@@ -56,6 +56,16 @@ describe("manifest.json", () => {
     expect(manifest.row_policies?.shared_packing_items).toEqual({ kind: "adult_writable" });
   });
 
+  it("deletes everything a trip owns along with the trip", () => {
+    // packing_items is owner_only, so a page-side delete of it reaches only the
+    // caller's own rows unless they supervise. The hub's cascade is what lets
+    // any adult delete a trip without leaving other travelers' lists behind.
+    expect(manifest.delete_cascades?.trips).toEqual(
+      ["trip_members", "itinerary_items", "packing_items", "shared_packing_items"]
+        .map(table => ({ table, foreign_key: "trip_id" })),
+    );
+  });
+
   it("protects store, document, and raw-file writes", () => {
     expect(manifest.store_acls?.calendar_events?.write?.require_role).toBe("adult");
     expect(manifest.document_acls?.write?.require_role).toBe("adult");

@@ -5,7 +5,7 @@ A [Chickadee Bandit](https://chickadeebandit.com/app-library/trip-planner) app f
 ## Features
 
 - **Itinerary** — Day-by-day view with categorized items (transport, accommodation, activity, restaurant). Each item supports a time, description, confirmation code, and booking URL.
-- **Packing lists** — Per-member and shared lists with check-off. Adults see everyone's progress at a glance.
+- **Packing lists** — Per-member and shared lists with check-off. Adults see everyone's progress at a glance; in a shared space the steward does.
 - **Grocery integration** — Push shared packing items (sunscreen, adapters, snacks) directly to the household shopping list.
 - **Documents** — Upload and download booking confirmations via the hub's shared document layer.
 
