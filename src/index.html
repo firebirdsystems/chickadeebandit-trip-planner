@@ -516,7 +516,8 @@ let searchQ = "";       // in-app search (see logic.js searchableFields)
         await loadTripDetail(trip.id);
       } catch (e) {
         goBack();
-        hubAlert("Could not open this trip.", { description: e.message });
+        console.error(e);
+        hubAlert("Couldn’t open this trip.");
         return;
       }
       render();
@@ -964,7 +965,8 @@ let searchQ = "";       // in-app search (see logic.js searchableFields)
         await openTrip(newTrip);
       } catch (e) {
         if (btn) { btn.disabled = false; btn.textContent = "Create trip"; }
-        hubAlert("Could not save.", { description: e.message });
+        console.error(e);
+        hubAlert("Couldn’t create the trip — try again.");
       }
     };
 
@@ -1042,7 +1044,8 @@ let searchQ = "";       // in-app search (see logic.js searchableFields)
         renderTrip();
       } catch (e) {
         if (btn) { btn.disabled = false; btn.textContent = "Save"; }
-        hubAlert("Could not save.", { description: e.message });
+        console.error(e);
+        hubAlert("Couldn’t save the trip — try again.");
       }
     };
 
@@ -1202,7 +1205,8 @@ let searchQ = "";       // in-app search (see logic.js searchableFields)
         refreshTab();
       } catch (e) {
         if (btn) { btn.disabled = false; btn.textContent = "Save"; }
-        hubAlert("Could not save.", { description: e.message });
+        console.error(e);
+        hubAlert("Couldn’t save the item — try again.");
       }
     };
 
@@ -1212,7 +1216,8 @@ let searchQ = "";       // in-app search (see logic.js searchableFields)
       try {
         await db(`DELETE FROM app_trip_planner__itinerary_items WHERE id=?`, [itemId]);
       } catch (e) {
-        hubAlert("Could not remove this item.", { description: e.message });
+        console.error(e);
+        hubAlert("Couldn’t remove the item — try again.");
         return;
       }
       itineraryItems = itineraryItems.filter(i => i.id !== itemId);
@@ -1282,7 +1287,8 @@ let searchQ = "";       // in-app search (see logic.js searchableFields)
         }
       } catch (e) {
         if (btn) { btn.disabled = false; btn.textContent = "Add"; }
-        hubAlert("Could not save.", { description: e.message });
+        console.error(e);
+        hubAlert("Couldn’t add the item — try again.");
       }
     };
 
@@ -1306,7 +1312,8 @@ let searchQ = "";       // in-app search (see logic.js searchableFields)
           return;
         }
       } catch (e) {
-        hubAlert("Could not update this item.", { description: e.message });
+        console.error(e);
+        hubAlert("Couldn’t update the item — try again.");
         return;
       }
 
@@ -1328,7 +1335,8 @@ let searchQ = "";       // in-app search (see logic.js searchableFields)
       try {
         await db(`DELETE FROM ${table} WHERE id=?`, [itemId]);
       } catch (e) {
-        hubAlert("Could not remove this item.", { description: e.message });
+        console.error(e);
+        hubAlert("Couldn’t remove the item — try again.");
         return;
       }
       packingItems = packingItems.filter(i => i.id !== itemId);
@@ -1353,7 +1361,8 @@ let searchQ = "";       // in-app search (see logic.js searchableFields)
       } catch (e) {
         // The checkbox was already flipped by the tap; redraw it from what was saved.
         refreshTab();
-        hubAlert("Could not update who is coming.", { description: e.message });
+        console.error(e);
+        hubAlert("Couldn’t update who is coming — try again.");
       }
     };
 
@@ -1451,7 +1460,8 @@ let searchQ = "";       // in-app search (see logic.js searchableFields)
         // Nothing changed: someone else deleted it first. It is gone either way.
         gone = DB && changed === 0;
       } catch (e) {
-        await hubAlert("Could not delete this trip.", { description: e.message });
+        console.error(e);
+        await hubAlert("Couldn’t delete the trip — try again.");
         return;
       }
 
