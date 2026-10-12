@@ -11,6 +11,7 @@ import {
   CAT_ICONS,
   STATUS_LABELS, searchableFields,
   supervisesPacking, canAddToPackingList, canEditPackingItem, collectPages,
+  canRemoveDocument, deleteTripDescription,
 } from "../src/logic.js";
 
 // ── nightCount ────────────────────────────────────────────────────────────────
@@ -320,5 +321,36 @@ describe("collectPages", () => {
 
   it("stops on a list that never ends", async () => {
     await expect(collectPages(async () => ({ items: [0], next: "again" }), 3)).rejects.toThrow("did not end");
+  });
+});
+
+describe("a trip's documents", () => {
+  const adult = { id: "a1", role: "adult" };
+  const mine = { id: "d1", ownerId: "a1" };
+  const theirs = { id: "d2", ownerId: "b2" };
+
+  it("lets the uploader and the admin remove a document, and no other adult", () => {
+    expect(canRemoveDocument(mine, adult, false)).toBe(true);
+    expect(canRemoveDocument(theirs, adult, false)).toBe(false);
+    expect(canRemoveDocument(theirs, adult, true)).toBe(true);
+    expect(canRemoveDocument(theirs, null, false)).toBe(false);
+    expect(canRemoveDocument({ id: "d3" }, { id: undefined }, false)).toBe(false);
+  });
+
+  it("says a plain delete when the trip has no documents", () => {
+    expect(deleteTripDescription()).toBe("This will permanently remove the trip, all itinerary items, and packing lists.");
+  });
+
+  it("names the documents that go with the trip and the ones that stay", () => {
+    expect(deleteTripDescription({ removable: 1 })).toMatch(/and the document you can remove from it\.$/);
+    expect(deleteTripDescription({ removable: 3 })).toMatch(/and 3 documents you can remove from it\.$/);
+    const mixed = deleteTripDescription({ removable: 2, staying: 1 });
+    expect(mixed).toMatch(/2 documents you can remove/);
+    expect(mixed).toMatch(/One document uploaded by someone else will stay in Documents\.$/);
+    expect(deleteTripDescription({ staying: 4 })).toMatch(/packing lists\. 4 documents uploaded by someone else will stay/);
+  });
+
+  it("says so when the documents could not be listed", () => {
+    expect(deleteTripDescription({ unread: true })).toMatch(/could not be listed, so any uploaded to it will stay in Documents\.$/);
   });
 });

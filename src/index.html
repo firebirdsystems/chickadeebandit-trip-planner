@@ -276,6 +276,8 @@
       background: var(--surface, var(--card, #fff)); color: var(--text, inherit);
     }
     .search-input:focus { outline: none; border-color: var(--accent, #6366f1); }
+    .load-error { margin: 0 0 12px; padding: 10px 14px; border-radius: 10px; background: var(--hub-tint-danger, #fee2e2); color: var(--hub-tint-danger-fg, #b91c1c); font-size: 0.9rem; display: flex; gap: 10px; align-items: center; justify-content: space-between; }
+    .load-error-retry { background: none; border: 1px solid currentColor; border-radius: 8px; padding: 5px 10px; font: inherit; font-weight: 600; color: inherit; cursor: pointer; flex-shrink: 0; }
   </style>
 </head>
 <body>
@@ -294,6 +296,7 @@
       nightCount, dateRange, dayLabel, formatDateRange,
       packingProgress, sortItinerary, outsideTripDates, safeHttpUrl, searchableFields,
       supervisesPacking, canAddToPackingList, canEditPackingItem, collectPages,
+      canRemoveDocument, deleteTripDescription,
     } from "./logic.js";
 
     // ── Runtime globals ──────────────────────────────────────────────────────
@@ -367,8 +370,10 @@ let searchQ = "";       // in-app search (see logic.js searchableFields)
     let itineraryItems = [];
     let packingItems   = [];
     let tripDocs       = [];
+    let tripDocsUnread = false; // the trip's documents could not be read
     let currentTab     = "itinerary";
     let modalEl        = null;
+    let loadFailed     = false; // set when the first load fails
 
     // ── DB helper ────────────────────────────────────────────────────────────
     async function db(sql, params = []) {
@@ -378,12 +383,12 @@ let searchQ = "";       // in-app search (see logic.js searchableFields)
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ sql, params }),
       });
-      const json = await res.json();
+      const json = await res.json().catch(() => null);
       // The hub reports a refused write as a JSON body with an `error` key
       // (403 row policy, 400 bad statement, 507 over quota). fetch() does not
       // reject on those, so without this throw every caller's rollback and
       // error toast below is unreachable code.
-      if (!res.ok || json.error) throw new Error(json.error || `Database request failed (${res.status})`);
+      if (!res.ok || !json || typeof json !== "object" || json.error) throw new Error(json?.error || `Database request failed (${res.status})`);
       return json;
     }
 
@@ -392,7 +397,9 @@ let searchQ = "";       // in-app search (see logic.js searchableFields)
      *  and names the next page in a header; throws if any page cannot be read. */
     function loadTripDocs(tripId) {
       return collectPages(async cursor => {
-        const res = await fetch(`${DOCS}?sourceId=${encodeURIComponent(tripId)}&limit=100${cursor ? `&cursor=${encodeURIComponent(cursor)}` : ""}`);
+        // Bounded: Delete trip waits on this list, and a request that never
+        // answers would leave that button doing nothing.
+        const res = await fetch(`${DOCS}?sourceId=${encodeURIComponent(tripId)}&limit=100${cursor ? `&cursor=${encodeURIComponent(cursor)}` : ""}`, { signal: AbortSignal.timeout(15000) });
         if (!res.ok) throw new Error(`Could not list documents (${res.status})`);
         return { items: await res.json(), next: res.headers.get("X-Documents-Next-Cursor") };
       });
@@ -408,10 +415,13 @@ let searchQ = "";       // in-app search (see logic.js searchableFields)
         memberMap = new Map(members.map(m => [m.id, m]));
         return;
       }
-      try {
-        const res = await fetch(`${CONTEXT}?keys=family.members`);
-        members = ((await res.json())["family.members"]) ?? [];
-      } catch { members = []; }
+      // A failed read throws: it is a failed load, never a household of nobody.
+      const res = await fetch(`${CONTEXT}?keys=family.members`);
+      const data = await res.json().catch(() => null);
+      if (!res.ok || data === null || typeof data !== "object" || Array.isArray(data)) throw new Error("Couldn’t reach the hub. Try again.");
+      // A 200 that names the key in `$errors` is the hub saying it could not read it.
+      if (Array.isArray(data.$errors) && data.$errors.includes("family.members")) throw new Error("Couldn’t reach the hub. Try again.");
+      members = data["family.members"] ?? [];
       memberMap = new Map(members.map(m => [m.id, m]));
     }
 
@@ -453,9 +463,11 @@ let searchQ = "";       // in-app search (see logic.js searchableFields)
         ...sharedRows.map(row => ({ ...row, member_id: null, shared: true })),
       ];
       tripDocs       = [];
+      tripDocsUnread = false;
 
       if (DOCS) {
-        try { tripDocs = await loadTripDocs(tripId); } catch { /* non-fatal */ }
+        // Non-fatal, but remembered: a list that could not be read is not "none yet".
+        try { tripDocs = await loadTripDocs(tripId); } catch { tripDocsUnread = true; }
       }
     }
 
@@ -500,7 +512,13 @@ let searchQ = "";       // in-app search (see logic.js searchableFields)
       currentTrip = trip;
       currentTab  = "itinerary";
       view        = "trip";
-      await loadTripDetail(trip.id);
+      try {
+        await loadTripDetail(trip.id);
+      } catch (e) {
+        goBack();
+        hubAlert("Could not open this trip.", { description: e.message });
+        return;
+      }
       render();
     }
 
@@ -551,11 +569,13 @@ let searchQ = "";       // in-app search (see logic.js searchableFields)
         <div class="page">
           <div class="header">
             <h1>${glyph("plane")} Trips</h1>
-            ${canCreate ? `<button class="btn-primary" onclick="window._newTrip()">+ New trip</button>` : ""}
+            ${canCreate && !loadFailed ? `<button class="btn-primary" onclick="window._newTrip()">+ New trip</button>` : ""}
           </div>
 
           ${trips.length ? `<div class="search-row"><input id="search" class="search-input" type="search" placeholder="Search trips…" aria-label="Search trips" value="${esc(searchQ)}" /></div>` : ""}
-          ${matched.length === 0 ? (searchQ ? `
+          ${loadFailed ? `
+            <div class="load-error" data-testid="load-error" role="alert"><span>Couldn’t load the trips.</span> <button type="button" class="load-error-retry" data-testid="load-retry">Try again</button></div>
+          ` : matched.length === 0 ? (searchQ ? `
             <div class="empty">
               <div class="empty-icon">${chickadee("searching")}</div>
               <p>No trips match "${esc(searchQ)}".</p>
@@ -781,7 +801,7 @@ let searchQ = "";       // in-app search (see logic.js searchableFields)
           <span class="doc-name">${glyph("document")} ${esc(doc.title)}</span>
           <div class="doc-actions">
             ${doc.fileKey ? `<a class="btn-ghost btn-sm" href="${esc(filesHelper.url(doc.fileKey))}" target="_blank" rel="noopener">Download</a>` : ""}
-            ${isAdmin ? `<button class="btn-ghost btn-sm" onclick="window._deleteDoc(${jsArg(doc.id)}, ${jsArg(doc.fileKey ?? "")})">Remove</button>` : ""}
+            ${!ME || canRemoveDocument(doc, ME, TENANT.isAdmin) ? `<button class="btn-ghost btn-sm" data-testid="doc-remove" onclick="window._deleteDoc(${jsArg(doc.id)})">Remove</button>` : ""}
           </div>
         </div>
       `).join("");
@@ -820,7 +840,7 @@ let searchQ = "";       // in-app search (see logic.js searchableFields)
           ${DOCS ? `
             <div class="card">
               <div class="card-label">Documents</div>
-              ${docRows || `<p class="muted">No documents uploaded yet.</p>`}
+              ${docRows || `<p class="muted">${tripDocsUnread ? "Couldn’t load the documents." : "No documents uploaded yet."}</p>`}
               ${isAdmin ? `
                 <div class="upload-row">
                   <input type="file" id="doc-upload"
@@ -944,7 +964,7 @@ let searchQ = "";       // in-app search (see logic.js searchableFields)
         await openTrip(newTrip);
       } catch (e) {
         if (btn) { btn.disabled = false; btn.textContent = "Create trip"; }
-        throw e;
+        hubAlert("Could not save.", { description: e.message });
       }
     };
 
@@ -1022,7 +1042,7 @@ let searchQ = "";       // in-app search (see logic.js searchableFields)
         renderTrip();
       } catch (e) {
         if (btn) { btn.disabled = false; btn.textContent = "Save"; }
-        throw e;
+        hubAlert("Could not save.", { description: e.message });
       }
     };
 
@@ -1182,14 +1202,19 @@ let searchQ = "";       // in-app search (see logic.js searchableFields)
         refreshTab();
       } catch (e) {
         if (btn) { btn.disabled = false; btn.textContent = "Save"; }
-        throw e;
+        hubAlert("Could not save.", { description: e.message });
       }
     };
 
     window._deleteItem = async function(itemId) {
       const ok = await hubConfirm({ message: "Remove this item?", destructive: true });
       if (!ok) return;
-      await db(`DELETE FROM app_trip_planner__itinerary_items WHERE id=?`, [itemId]);
+      try {
+        await db(`DELETE FROM app_trip_planner__itinerary_items WHERE id=?`, [itemId]);
+      } catch (e) {
+        hubAlert("Could not remove this item.", { description: e.message });
+        return;
+      }
       itineraryItems = itineraryItems.filter(i => i.id !== itemId);
       refreshTab();
     };
@@ -1257,7 +1282,7 @@ let searchQ = "";       // in-app search (see logic.js searchableFields)
         }
       } catch (e) {
         if (btn) { btn.disabled = false; btn.textContent = "Add"; }
-        throw e;
+        hubAlert("Could not save.", { description: e.message });
       }
     };
 
@@ -1270,10 +1295,20 @@ let searchQ = "";       // in-app search (see logic.js searchableFields)
       const table = item.shared
         ? "app_trip_planner__shared_packing_items"
         : "app_trip_planner__packing_items";
-      await db(
-        `UPDATE ${table} SET checked=?, checked_by=?, checked_at=? WHERE id=?`,
-        [newChecked, newChecked ? (ME?.id ?? null) : null, newChecked ? now : null, itemId]
-      );
+      try {
+        const { changed } = await db(
+          `UPDATE ${table} SET checked=?, checked_by=?, checked_at=? WHERE id=?`,
+          [newChecked, newChecked ? (ME?.id ?? null) : null, newChecked ? now : null, itemId]
+        );
+        // Nothing changed: the item was removed, or is not this member's to tick.
+        if (DB && changed === 0) {
+          hubAlert("This item can no longer be changed.");
+          return;
+        }
+      } catch (e) {
+        hubAlert("Could not update this item.", { description: e.message });
+        return;
+      }
 
       const idx = packingItems.findIndex(i => i.id === itemId);
       if (idx !== -1) {
@@ -1290,24 +1325,35 @@ let searchQ = "";       // in-app search (see logic.js searchableFields)
       const table = item.shared
         ? "app_trip_planner__shared_packing_items"
         : "app_trip_planner__packing_items";
-      await db(`DELETE FROM ${table} WHERE id=?`, [itemId]);
+      try {
+        await db(`DELETE FROM ${table} WHERE id=?`, [itemId]);
+      } catch (e) {
+        hubAlert("Could not remove this item.", { description: e.message });
+        return;
+      }
       packingItems = packingItems.filter(i => i.id !== itemId);
       refreshTab();
     };
 
     // ── Trip members ─────────────────────────────────────────────────────────
     window._toggleMember = async function(memberId, adding) {
-      if (adding) {
-        await db(
-          `INSERT INTO app_trip_planner__trip_members (id, trip_id, member_id, added_at)
-           VALUES (?, ?, ?, ?)
-           ON CONFLICT (trip_id, member_id) DO NOTHING`,
-          [crypto.randomUUID(), currentTrip.id, memberId, new Date().toISOString()]
-        );
-        if (!tripMembers.includes(memberId)) tripMembers = [...tripMembers, memberId];
-      } else {
-        await db(`DELETE FROM app_trip_planner__trip_members WHERE trip_id=? AND member_id=?`, [currentTrip.id, memberId]);
-        tripMembers = tripMembers.filter(id => id !== memberId);
+      try {
+        if (adding) {
+          await db(
+            `INSERT INTO app_trip_planner__trip_members (id, trip_id, member_id, added_at)
+             VALUES (?, ?, ?, ?)
+             ON CONFLICT (trip_id, member_id) DO NOTHING`,
+            [crypto.randomUUID(), currentTrip.id, memberId, new Date().toISOString()]
+          );
+          if (!tripMembers.includes(memberId)) tripMembers = [...tripMembers, memberId];
+        } else {
+          await db(`DELETE FROM app_trip_planner__trip_members WHERE trip_id=? AND member_id=?`, [currentTrip.id, memberId]);
+          tripMembers = tripMembers.filter(id => id !== memberId);
+        }
+      } catch (e) {
+        // The checkbox was already flipped by the tap; redraw it from what was saved.
+        refreshTab();
+        hubAlert("Could not update who is coming.", { description: e.message });
       }
     };
 
@@ -1342,64 +1388,86 @@ let searchQ = "";       // in-app search (see logic.js searchableFields)
       }
     };
 
-    window._deleteDoc = async function(docId, fileKey) {
+    // Removing the document is enough: the hub takes the file with it, unless
+    // another document still names that file.
+    // Resolves to "removed" (already gone counts), "refused" or "failed".
+    async function removeDoc(docId) {
+      try {
+        const res = await fetch(`${DOCS}/${docId}`, { method: "DELETE" });
+        if (res.ok || res.status === 404) return "removed";
+        return res.status === 403 ? "refused" : "failed";
+      } catch { return "failed"; }
+    }
+
+    window._deleteDoc = async function(docId) {
       const ok = await hubConfirm({ message: "Remove this document?", destructive: true });
       if (!ok) return;
-      await fetch(`${DOCS}/${docId}`, { method: "DELETE" }).catch(() => {});
-      if (fileKey) await filesHelper.delete(fileKey).catch(() => {});
+      const outcome = await removeDoc(docId);
+      if (outcome !== "removed") {
+        hubAlert("Could not remove this document.", { description: outcome === "refused" ? "Only whoever uploaded it, or an admin, can remove it." : "Check your connection and try again." });
+        return;
+      }
       tripDocs = tripDocs.filter(d => d.id !== docId);
       refreshTab();
     };
 
     // ── Delete trip ───────────────────────────────────────────────────────────
+    let deletingTrip = false;
     window._deleteTrip = async function() {
+      // The documents are listed before the question is asked, so a second tap
+      // in that pause must not start a second delete.
+      if (deletingTrip || !currentTrip) return;
+      deletingTrip = true;
+      try { await deleteCurrentTrip(); } finally { deletingTrip = false; }
+    };
+
+    async function deleteCurrentTrip() {
+      const tripId = currentTrip.id;
+      const title  = currentTrip.title;
+      // The trip's uploaded documents live in the household's documents, not in
+      // this app's tables, so no cascade reaches them. Read the list in full
+      // before asking: the one drawn with the trip is empty whenever that
+      // earlier read failed, and the question has to say what will be left.
+      let docs = [];
+      let unread = false;
+      if (DOCS) {
+        try { docs = await loadTripDocs(tripId); } catch { unread = true; }
+      }
+      const removable = docs.filter(doc => !ME || canRemoveDocument(doc, ME, TENANT.isAdmin));
       const ok = await hubConfirm({
-        message:      `Delete "${currentTrip.title}"?`,
-        description:  `This will permanently remove the trip, all itinerary items, and packing lists${tripDocs.length ? `, and the ${tripDocs.length === 1 ? "document" : `${tripDocs.length} documents`} uploaded to it` : ""}.`,
+        message:      `Delete "${title}"?`,
+        description:  deleteTripDescription({ removable: removable.length, staying: docs.length - removable.length, unread }),
         confirmLabel: "Delete",
         destructive:  true,
       });
       if (!ok) return;
 
-      const tripId = currentTrip.id;
       // One statement. The manifest's delete_cascades takes the trip's
       // travelers, itinerary and both packing lists with it in the same
       // transaction, including personal lists the caller cannot read.
+      let gone = false;
       try {
         const { changed } = await db(`DELETE FROM app_trip_planner__trips WHERE id=?`, [tripId]);
-        if (DB && changed === 0) throw new Error("The trip is no longer there, or it is not yours to delete.");
+        // Nothing changed: someone else deleted it first. It is gone either way.
+        gone = DB && changed === 0;
       } catch (e) {
         await hubAlert("Could not delete this trip.", { description: e.message });
         return;
       }
 
-      // The trip's uploaded documents live in the household's documents, not in
-      // this app's tables, so no cascade reaches them. Read the list again, in
-      // full: the one drawn with the trip is empty whenever that earlier read
-      // failed. If it cannot be read now either, say so rather than pass off
-      // what is known as everything.
-      let docs = tripDocs;
-      let listUnread = false;
-      if (DOCS) {
-        try { docs = await loadTripDocs(tripId); } catch { listUnread = true; }
-      }
-      const removed = await Promise.all(docs.map(async doc => {
-        try {
-          const res = await fetch(`${DOCS}/${doc.id}`, { method: "DELETE" });
-          if (!res.ok) return false;
-          if (doc.fileKey) await filesHelper.delete(doc.fileKey).catch(() => {});
-          return true;
-        } catch { return false; }
-      }));
-      const kept = removed.filter(ok => !ok).length;
-      tripDocs = [];
-      if (kept) await hubAlert("The trip was deleted, but not all of its documents.", { description: `${kept === 1 ? "One document" : `${kept} documents`} could not be removed and ${kept === 1 ? "is" : "are"} still in Documents.` });
-      else if (listUnread) await hubAlert("The trip was deleted, but its documents could not be listed.", { description: "Any that were uploaded to it may still be in Documents." });
-
+      // Leave the trip and republish before anything that can wait on a
+      // dialog, so the calendar never keeps a trip that no longer exists.
       trips = trips.filter(t => t.id !== tripId);
-      await publishTrips();
-      goBack();
-    };
+      // Only leave the trip if it is still the one on screen.
+      if (currentTrip?.id === tripId) { tripDocs = []; goBack(); } else render();
+      await publishTrips().catch(() => {});
+
+      // The documents go whether this delete removed the trip or found it
+      // already gone: either way nothing in the app can reach them afterwards.
+      const kept = (await Promise.all(removable.map(doc => removeDoc(doc.id)))).filter(outcome => outcome !== "removed").length;
+      if (kept) hubAlert("The trip was deleted, but not all of its documents.", { description: `${kept === 1 ? "One document" : `${kept} documents`} could not be removed and ${kept === 1 ? "is" : "are"} still in Documents.` });
+      else if (gone) hubAlert(`"${title}" had already been deleted.`);
+    }
 
     // ── Exposed globals ───────────────────────────────────────────────────────
     window._goBack       = goBack;
@@ -1420,11 +1488,20 @@ let searchQ = "";       // in-app search (see logic.js searchableFields)
     }
 
     // ── Init ─────────────────────────────────────────────────────────────────
-    (async () => {
-      await Promise.all([loadMembers(), loadTrips()]);
+    async function firstLoad() {
+      try {
+        await Promise.all([loadMembers(), loadTrips()]);
+        loadFailed = false;
+      } catch {
+        loadFailed = true;
+      }
       render();
-      handleDeepLink();
-    })();
+      if (!loadFailed) handleDeepLink(); // never open a detail over a failed load
+    }
+    document.addEventListener("click", (e) => {
+      if (e.target.closest('[data-testid="load-retry"]')) firstLoad();
+    });
+    firstLoad();
   </script>
 </body>
 </html>

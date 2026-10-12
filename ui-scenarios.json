@@ -337,7 +337,7 @@
       ]
     },
     {
-      "name": "in a shared space a participant sees only their own packing list and may still delete a trip; the steward sees every traveler's list",
+      "name": "in a shared space a participant sees only their own packing list and is still offered Delete trip; the steward sees every traveler's list",
       "context": "shared_space",
       "members": {
         "steward": "admin",

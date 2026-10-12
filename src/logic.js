@@ -154,3 +154,28 @@ export async function collectPages(fetchPage, maxPages = 100) {
   }
   throw new Error("The list did not end.");
 }
+
+/**
+ * Whether a member may remove a document uploaded to a trip. The hub lets a
+ * document go only for whoever uploaded it and for the admin (the steward in a
+ * shared space); being an adult is not enough.
+ */
+export function canRemoveDocument(doc, member, isAdmin) {
+  return isAdmin === true || (!!member && !!doc?.ownerId && doc.ownerId === member.id);
+}
+
+/**
+ * What deleting a trip will do, for the confirmation. `removable` documents go
+ * with the trip; `staying` ones were uploaded by someone else and remain in
+ * Documents; `unread` is true when the trip's documents could not be listed,
+ * so neither count is known.
+ */
+export function deleteTripDescription({ removable = 0, staying = 0, unread = false } = {}) {
+  const count = (n, one, many) => (n === 1 ? one : `${n} ${many}`);
+  let text = "This will permanently remove the trip, all itinerary items, and packing lists";
+  if (removable) text += `, and ${count(removable, "the document", "documents")} you can remove from it`;
+  text += ".";
+  if (staying) text += ` ${count(staying, "One document", "documents")} uploaded by someone else will stay in Documents.`;
+  if (unread) text += " Its documents could not be listed, so any uploaded to it will stay in Documents.";
+  return text;
+}
