@@ -1193,10 +1193,22 @@ let searchQ = "";       // in-app search (see logic.js searchableFields)
       if (btn) { btn.disabled = true; btn.textContent = "Saving…"; }
 
       try {
-        await db(
+        const tripId = currentTrip.id;
+        const { changed } = await db(
           `UPDATE app_trip_planner__itinerary_items SET title=?, category=?, time=?, description=?, confirmation_code=?, booking_url=? WHERE id=?`,
           [title, cat, time, desc, conf, url, itemId]
         );
+        // Nothing changed: someone else removed the item. Say so and show
+        // what is stored rather than drawing the edit as saved.
+        if (DB && changed === 0) {
+          closeModal();
+          hubAlert("This item can no longer be changed.");
+          try {
+            const { rows } = await db(`SELECT * FROM app_trip_planner__itinerary_items WHERE trip_id = ? ORDER BY (item_date IS NULL), item_date, sort_order, created_at`, [tripId]);
+            if (currentTrip?.id === tripId) { itineraryItems = rows; refreshTab(); }
+          } catch (e) { console.error(e); }
+          return;
+        }
 
         const idx = itineraryItems.findIndex(i => i.id === itemId);
         if (idx !== -1) {
@@ -1284,7 +1296,11 @@ let searchQ = "";       // in-app search (see logic.js searchableFields)
         if (toGrocery) {
           crossWrite("grocery", "pending_items", [
             { op: "array_append", path: "items", value: { name: label, addedBy: `Trip Planner (${currentTrip.title})` } },
-          ]).catch(() => {});
+          ]).catch(e => {
+            // The packing item is saved; only the shopping list copy failed.
+            console.error(e);
+            if (DB) hubAlert("The item was added, but not to the shopping list.");
+          });
         }
       } catch (e) {
         if (btn) { btn.disabled = false; btn.textContent = "Add"; }
