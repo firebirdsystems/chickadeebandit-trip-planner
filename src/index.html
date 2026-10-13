@@ -1130,7 +1130,8 @@ let searchQ = "";       // in-app search (see logic.js searchableFields)
         refreshTab();
       } catch (e) {
         if (btn) { btn.disabled = false; btn.textContent = "Add item"; }
-        throw e;
+        console.error(e);
+        hubAlert("Couldn’t add the item — try again.");
       }
     };
 
