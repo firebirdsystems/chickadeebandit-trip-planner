@@ -200,3 +200,18 @@ export function failureLine(e, { action, thing, found, guarded = false } = {}) {
   if (found === true || e?.status === 409) return `This ${thing} was changed by someone else — check it first.`;
   return `Couldn’t ${action} — try again.`;
 }
+
+/**
+ * The line a failed document upload shows: the file goes to POST /api/files, then
+ * its record to the documents endpoint. The upload's two refusals of the file
+ * itself get a line of their own: 413 too large, 415 a type the hub does not take
+ * (or content that does not match it). 429 is either endpoint's rate limit. The
+ * rest (403 a write ACL, 507 storage full, no answer or a 5xx) follows
+ * `failureLine`.
+ */
+export function uploadFailureLine(e, words) {
+  if (e?.status === 413) return "That file is too large.";
+  if (e?.status === 415) return "That kind of file can’t be uploaded.";
+  if (e?.status === 429) return "Too many tries — wait a minute and try again.";
+  return failureLine(e, words);
+}

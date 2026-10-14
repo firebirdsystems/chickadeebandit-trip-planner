@@ -296,7 +296,7 @@
       nightCount, dateRange, dayLabel, formatDateRange,
       packingProgress, sortItinerary, outsideTripDates, safeHttpUrl, searchableFields,
       supervisesPacking, canAddToPackingList, canEditPackingItem, collectPages,
-      canRemoveDocument, deleteTripDescription, failureLine,
+      canRemoveDocument, deleteTripDescription, failureLine, uploadFailureLine,
     } from "./logic.js";
 
     // ── Runtime globals ──────────────────────────────────────────────────────
@@ -1436,6 +1436,7 @@ let searchQ = "";       // in-app search (see logic.js searchableFields)
       if (!file) return;
       input.value = "";
 
+      let unfiled = null;
       try {
         const { id: fileKey } = await filesHelper.upload(file);
         const res = await fetch(DOCS, {
@@ -1452,13 +1453,26 @@ let searchQ = "";       // in-app search (see logic.js searchableFields)
             sharedWith: ["everyone"],
           }),
         });
-        if (!res.ok) throw Object.assign(new Error(`Upload failed (${res.status})`), { status: res.status });
-        const doc = await res.json();
-        tripDocs = [...tripDocs, doc];
+        if (!res.ok) {
+          // Refused before anything was stored (a 4xx, or 507 over the storage
+          // limit): no document names the upload and none will, so it is
+          // discarded below. A 400 may be a write that timed out after it was
+          // stored, and any other failure may have stored the document: kept.
+          if ((res.status > 400 && res.status < 500) || res.status === 507) unfiled = fileKey;
+          const body = await res.json().catch(() => null);
+          throw Object.assign(new Error(body?.error || `Document save failed (${res.status})`), { status: res.status, code: body?.code });
+        }
+        // The hub answers only the new document's id; the row is drawn from the file.
+        const { id } = await res.json();
+        tripDocs = [...tripDocs, {
+          id, title: file.name, category: "other", fileKey, mimeType: file.type, sizeBytes: file.size,
+          ownerId: ME?.id ?? null, createdAt: new Date().toISOString(),
+        }];
         refreshTab();
       } catch (e) {
         console.error(e);
-        hubAlert(e?.status === 413 ? "That file is too large to upload." : failureLine(e, { action: "upload the document", thing: "document" }));
+        if (unfiled) filesHelper.delete(unfiled).catch(() => {});
+        hubAlert(uploadFailureLine(e, { action: "upload the document", thing: "document" }));
       }
     };
 
