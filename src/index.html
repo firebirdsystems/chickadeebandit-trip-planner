@@ -290,7 +290,7 @@
       createShareHelper, activeShareLinks, SHARE_CALENDAR_EXPIRY_CHOICES, DEFAULT_SHARE_EXPIRY_HOURS,
       glyph, chickadee,
     } from "/hub-sdk.js";
-    import { createShareUi, createOverlayView } from "./share.js";
+    import { createShareUi, createOverlayView } from "/hub-share-ui.js";
     import {
       CAT_ICONS, STATUS_LABELS,
       nightCount, dateRange, dayLabel, formatDateRange,
@@ -925,7 +925,10 @@ let searchQ = "";       // in-app search (see logic.js searchableFields)
       if (!start || !end) { hubAlert("Please set start and end dates."); return; }
       if (start > end) { hubAlert("End date must be on or after start date."); return; }
 
-      const btn = modalEl?.querySelector(".btn-primary");
+      // The dialog this save came from: a late answer closes only it, and
+      // opens the new trip only if the member is still waiting on it.
+      const dlg = modalEl;
+      const btn = dlg?.querySelector(".btn-primary");
       if (btn) { btn.disabled = true; btn.textContent = "Creating…"; }
 
       try {
@@ -952,7 +955,8 @@ let searchQ = "";       // in-app search (see logic.js searchableFields)
           title, destination: dest, start_date: start, end_date: end,
           created_by: ME?.id,
         });
-        closeModal();
+        const waiting = modalEl === dlg;
+        if (waiting) closeModal();
         publishTrips();
 
         // The trip.created event above and this feed line are different sinks,
@@ -965,7 +969,7 @@ let searchQ = "";       // in-app search (see logic.js searchableFields)
           { deepLink: { appId: APP_ID, params: { trip: id } } },
         );
 
-        await openTrip(newTrip);
+        if (waiting) await openTrip(newTrip);
       } catch (e) {
         if (btn) { btn.disabled = false; btn.textContent = "Create trip"; }
         console.error(e);
@@ -1029,22 +1033,26 @@ let searchQ = "";       // in-app search (see logic.js searchableFields)
       if (!title) { document.getElementById("f-title").focus(); return; }
       if (start > end) { hubAlert("End date must be on or after start date."); return; }
 
-      const btn = modalEl?.querySelector(".btn-primary");
+      // The dialog and the trip this save came from: another may be open by
+      // the time the hub answers.
+      const dlg = modalEl;
+      const trip = currentTrip;
+      const btn = dlg?.querySelector(".btn-primary");
       if (btn) { btn.disabled = true; btn.textContent = "Saving…"; }
 
       try {
         await db(
           `UPDATE app_trip_planner__trips SET title=?, destination=?, start_date=?, end_date=?, status=?, notes=? WHERE id=?`,
-          [title, dest, start, end, status, notes, currentTrip.id]
+          [title, dest, start, end, status, notes, trip.id]
         );
 
-        Object.assign(currentTrip, { title, destination: dest, start_date: start, end_date: end, status, notes });
-        const idx = trips.findIndex(t => t.id === currentTrip.id);
-        if (idx !== -1) trips[idx] = { ...trips[idx], ...currentTrip };
+        Object.assign(trip, { title, destination: dest, start_date: start, end_date: end, status, notes });
+        const idx = trips.findIndex(t => t.id === trip.id);
+        if (idx !== -1) trips[idx] = { ...trips[idx], ...trip };
 
-        closeModal();
+        if (modalEl === dlg) closeModal();
         publishTrips();
-        renderTrip();
+        if (currentTrip?.id === trip.id) renderTrip();
       } catch (e) {
         if (btn) { btn.disabled = false; btn.textContent = "Save"; }
         console.error(e);
