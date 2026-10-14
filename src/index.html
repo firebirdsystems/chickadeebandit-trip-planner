@@ -1096,6 +1096,24 @@ let searchQ = "";       // in-app search (see logic.js searchableFields)
       setTimeout(() => document.getElementById("f-title")?.focus(), 50);
     };
 
+    // Nothing ties an item to a live trip, so the hub stores one for a trip
+    // another member deleted meanwhile. Look after the write: a trip still
+    // here now takes the item with it if it is deleted later. True when the
+    // trip is gone: the row just stored in `table` is removed and the member told.
+    async function addedToDeletedTrip(tripId, table, id) {
+      let gone = false;
+      try {
+        gone = !!DB && (await db(`SELECT id FROM app_trip_planner__trips WHERE id = ?`, [tripId])).rows.length === 0;
+      } catch (e) { console.error(e); }
+      if (!gone) return false;
+      await db(`DELETE FROM ${table} WHERE id=?`, [id]).catch(e => console.error(e));
+      closeModal();
+      trips = trips.filter(t => t.id !== tripId);
+      if (currentTrip?.id === tripId) goBack(); else render();
+      hubAlert("This trip was deleted, so the item wasn’t added.");
+      return true;
+    }
+
     window._submitNewItem = async function(date) {
       const title = document.getElementById("f-title").value.trim();
       const cat   = document.getElementById("f-cat").value;
@@ -1122,21 +1140,7 @@ let searchQ = "";       // in-app search (see logic.js searchableFields)
           [id, tripId, date, sort, time, title, desc, cat, url, conf, ME?.id ?? "system", now]
         );
 
-        // Nothing ties an item to a live trip, so the hub stores one for a trip
-        // another member deleted meanwhile. Look after the write: a trip still
-        // here now takes the item with it if it is deleted later.
-        let gone = false;
-        try {
-          gone = !!DB && (await db(`SELECT id FROM app_trip_planner__trips WHERE id = ?`, [tripId])).rows.length === 0;
-        } catch (e) { console.error(e); }
-        if (gone) {
-          await db(`DELETE FROM app_trip_planner__itinerary_items WHERE id=?`, [id]).catch(e => console.error(e));
-          closeModal();
-          trips = trips.filter(t => t.id !== tripId);
-          if (currentTrip?.id === tripId) goBack(); else render();
-          hubAlert("This trip was deleted, so the item wasn’t added.");
-          return;
-        }
+        if (await addedToDeletedTrip(tripId, "app_trip_planner__itinerary_items", id)) return;
 
         const newItem = { id, trip_id: tripId, item_date: date, sort_order: sort,
           time, title, description: desc, category: cat, booking_url: url,
@@ -1290,30 +1294,35 @@ let searchQ = "";       // in-app search (see logic.js searchableFields)
       try {
         const id  = crypto.randomUUID();
         const now = new Date().toISOString();
+        const { id: tripId, title: tripTitle } = currentTrip;
+        const table = memberId ? "app_trip_planner__packing_items" : "app_trip_planner__shared_packing_items";
 
         if (memberId) {
           await db(
             `INSERT INTO app_trip_planner__packing_items (id, trip_id, member_id, label, checked, created_at)
              VALUES (?, ?, ?, ?, 0, ?)`,
-            [id, currentTrip.id, memberId, label, now]
+            [id, tripId, memberId, label, now]
           );
         } else {
           await db(
             `INSERT INTO app_trip_planner__shared_packing_items (id, trip_id, label, checked, created_at)
              VALUES (?, ?, ?, 0, ?)`,
-            [id, currentTrip.id, label, now]
+            [id, tripId, label, now]
           );
         }
 
-        packingItems = [...packingItems,
-          { id, trip_id: currentTrip.id, member_id: memberId, label, checked: 0, checked_by: null, checked_at: null, created_at: now, shared: !memberId }
+        if (await addedToDeletedTrip(tripId, table, id)) return;
+
+        // Only onto the trip it was stored under, if that is still the one open.
+        if (currentTrip?.id === tripId) packingItems = [...packingItems,
+          { id, trip_id: tripId, member_id: memberId, label, checked: 0, checked_by: null, checked_at: null, created_at: now, shared: !memberId }
         ];
         closeModal();
         refreshTab();
 
         if (toGrocery) {
           crossWrite("grocery", "pending_items", [
-            { op: "array_append", path: "items", value: { name: label, addedBy: `Trip Planner (${currentTrip.title})` } },
+            { op: "array_append", path: "items", value: { name: label, addedBy: `Trip Planner (${tripTitle})` } },
           ]).catch(e => {
             // The packing item is saved; only the shopping list copy failed.
             console.error(e);
