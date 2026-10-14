@@ -296,7 +296,7 @@
       nightCount, dateRange, dayLabel, formatDateRange,
       packingProgress, sortItinerary, outsideTripDates, safeHttpUrl, searchableFields,
       supervisesPacking, canAddToPackingList, canEditPackingItem, collectPages,
-      canRemoveDocument, deleteTripDescription, failureLine, uploadFailureLine,
+      canRemoveDocument, deleteTripDescription, failureLine, uploadFailureLine, outcomeUnknown,
     } from "./logic.js";
 
     // ── Runtime globals ──────────────────────────────────────────────────────
@@ -1431,14 +1431,45 @@ let searchQ = "";       // in-app search (see logic.js searchableFields)
     };
 
     // ── Documents ────────────────────────────────────────────────────────────
+    // The upload behind a document whose save had no clear answer: the document
+    // may be stored and name it. Sending the same file to the same trip again
+    // reuses it, after first looking for a document that landed; it is never
+    // deleted on that unknown outcome. The hub mints a document's id, so the
+    // file is what finds it.
+    let pendingDoc = null; // { key, fileKey }
+
+    /** The trip's document naming this upload, or null. Throws when unread. */
+    async function landedDoc(tripId, fileKey) {
+      return (await loadTripDocs(tripId)).find(d => d.fileKey === fileKey) ?? null;
+    }
+
     window._uploadDoc = async function(input) {
       const file = input.files[0];
       if (!file) return;
       input.value = "";
 
+      const trip = currentTrip;
+      const key = [trip.id, file.name, file.size, file.lastModified].join("\n");
+      // Another file, or another trip: the earlier upload is left as it is.
+      if (pendingDoc && pendingDoc.key !== key) pendingDoc = null;
+      const showLanded = (doc) => {
+        pendingDoc = null;
+        if (currentTrip?.id !== trip.id) return;
+        tripDocs = [...tripDocs.filter(d => d.id !== doc.id), doc];
+        refreshTab();
+      };
       let unfiled = null;
       try {
-        const { id: fileKey } = await filesHelper.upload(file);
+        let fileKey = pendingDoc?.fileKey ?? null;
+        if (fileKey) {
+          // An earlier try's answer was lost: if its document landed, that is
+          // the one, shown once; never a second document naming the same file.
+          const doc = await landedDoc(trip.id, fileKey);
+          if (doc) return showLanded(doc);
+        } else {
+          fileKey = (await filesHelper.upload(file)).id;
+          pendingDoc = { key, fileKey };
+        }
         const res = await fetch(DOCS, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
@@ -1448,8 +1479,8 @@ let searchQ = "";       // in-app search (see logic.js searchableFields)
             fileKey,
             mimeType:  file.type,
             sizeBytes: file.size,
-            sourceId:  currentTrip.id,
-            folder:    currentTrip.title,
+            sourceId:  trip.id,
+            folder:    trip.title,
             sharedWith: ["everyone"],
           }),
         });
@@ -1458,12 +1489,14 @@ let searchQ = "";       // in-app search (see logic.js searchableFields)
           // limit): no document names the upload and none will, so it is
           // discarded below. A 400 may be a write that timed out after it was
           // stored, and any other failure may have stored the document: kept.
-          if ((res.status > 400 && res.status < 500) || res.status === 507) unfiled = fileKey;
           const body = await res.json().catch(() => null);
-          throw Object.assign(new Error(body?.error || `Document save failed (${res.status})`), { status: res.status, code: body?.code });
+          const err = Object.assign(new Error(body?.error || `Document save failed (${res.status})`), { status: res.status, code: body?.code });
+          if (!outcomeUnknown(err)) { unfiled = fileKey; pendingDoc = null; }
+          throw err;
         }
         // The hub answers only the new document's id; the row is drawn from the file.
         const { id } = await res.json();
+        pendingDoc = null;
         tripDocs = [...tripDocs, {
           id, title: file.name, category: "other", fileKey, mimeType: file.type, sizeBytes: file.size,
           ownerId: ME?.id ?? null, createdAt: new Date().toISOString(),
@@ -1472,6 +1505,12 @@ let searchQ = "";       // in-app search (see logic.js searchableFields)
       } catch (e) {
         console.error(e);
         if (unfiled) filesHelper.delete(unfiled).catch(() => {});
+        // No answer: the document may have landed. Found, it is shown once; not
+        // found, or unread, the upload stays pending for the next try.
+        if (pendingDoc?.key === key && outcomeUnknown(e)) {
+          const doc = await landedDoc(trip.id, pendingDoc.fileKey).catch((readErr) => { console.error(readErr); return null; });
+          if (doc) return showLanded(doc);
+        }
         hubAlert(uploadFailureLine(e, { action: "upload the document", thing: "document" }));
       }
     };
