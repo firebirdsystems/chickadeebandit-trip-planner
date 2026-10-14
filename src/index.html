@@ -1113,18 +1113,36 @@ let searchQ = "";       // in-app search (see logic.js searchableFields)
         const id    = crypto.randomUUID();
         const now   = new Date().toISOString();
         const sort  = itineraryItems.filter(i => i.item_date === date).length;
+        const tripId = currentTrip.id;
 
         await db(
           `INSERT INTO app_trip_planner__itinerary_items
              (id, trip_id, item_date, sort_order, time, title, description, category, booking_url, confirmation_code, created_by, created_at)
            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
-          [id, currentTrip.id, date, sort, time, title, desc, cat, url, conf, ME?.id ?? "system", now]
+          [id, tripId, date, sort, time, title, desc, cat, url, conf, ME?.id ?? "system", now]
         );
 
-        const newItem = { id, trip_id: currentTrip.id, item_date: date, sort_order: sort,
+        // Nothing ties an item to a live trip, so the hub stores one for a trip
+        // another member deleted meanwhile. Look after the write: a trip still
+        // here now takes the item with it if it is deleted later.
+        let gone = false;
+        try {
+          gone = !!DB && (await db(`SELECT id FROM app_trip_planner__trips WHERE id = ?`, [tripId])).rows.length === 0;
+        } catch (e) { console.error(e); }
+        if (gone) {
+          await db(`DELETE FROM app_trip_planner__itinerary_items WHERE id=?`, [id]).catch(e => console.error(e));
+          closeModal();
+          trips = trips.filter(t => t.id !== tripId);
+          if (currentTrip?.id === tripId) goBack(); else render();
+          hubAlert("This trip was deleted, so the item wasn’t added.");
+          return;
+        }
+
+        const newItem = { id, trip_id: tripId, item_date: date, sort_order: sort,
           time, title, description: desc, category: cat, booking_url: url,
           confirmation_code: conf, created_by: ME?.id ?? "system", created_at: now };
-        itineraryItems = sortItinerary([...itineraryItems, newItem]);
+        // Only onto the trip it was stored under, if that is still the one open.
+        if (currentTrip?.id === tripId) itineraryItems = sortItinerary([...itineraryItems, newItem]);
 
         closeModal();
         refreshTab();
