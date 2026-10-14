@@ -296,7 +296,7 @@
       nightCount, dateRange, dayLabel, formatDateRange,
       packingProgress, sortItinerary, outsideTripDates, safeHttpUrl, searchableFields,
       supervisesPacking, canAddToPackingList, canEditPackingItem, collectPages,
-      canRemoveDocument, deleteTripDescription,
+      canRemoveDocument, deleteTripDescription, failureLine,
     } from "./logic.js";
 
     // ── Runtime globals ──────────────────────────────────────────────────────
@@ -388,7 +388,10 @@ let searchQ = "";       // in-app search (see logic.js searchableFields)
       // (403 row policy, 400 bad statement, 507 over quota). fetch() does not
       // reject on those, so without this throw every caller's rollback and
       // error toast below is unreachable code.
-      if (!res.ok || !json || typeof json !== "object" || json.error) throw new Error(json?.error || `Database request failed (${res.status})`);
+      // `status` and `code` ride on the error: failureLine() picks the line from them.
+      if (!res.ok || !json || typeof json !== "object" || json.error) {
+        throw Object.assign(new Error(json?.error || `Database request failed (${res.status})`), { status: res.status, code: json?.code });
+      }
       return json;
     }
 
@@ -966,7 +969,7 @@ let searchQ = "";       // in-app search (see logic.js searchableFields)
       } catch (e) {
         if (btn) { btn.disabled = false; btn.textContent = "Create trip"; }
         console.error(e);
-        hubAlert("Couldn’t create the trip — try again.");
+        hubAlert(failureLine(e, { action: "create the trip", thing: "trip" }));
       }
     };
 
@@ -1045,7 +1048,7 @@ let searchQ = "";       // in-app search (see logic.js searchableFields)
       } catch (e) {
         if (btn) { btn.disabled = false; btn.textContent = "Save"; }
         console.error(e);
-        hubAlert("Couldn’t save the trip — try again.");
+        hubAlert(failureLine(e, { action: "save the trip", thing: "trip" }));
       }
     };
 
@@ -1100,14 +1103,15 @@ let searchQ = "";       // in-app search (see logic.js searchableFields)
     // another member deleted meanwhile. Look after the write: a trip still
     // here now takes the item with it if it is deleted later. True when the
     // trip is gone: the row just stored in `table` is removed and the member told.
-    async function addedToDeletedTrip(tripId, table, id) {
+    // `dialog` is the form that submitted: only that one is closed.
+    async function addedToDeletedTrip(tripId, table, id, dialog) {
       let gone = false;
       try {
         gone = !!DB && (await db(`SELECT id FROM app_trip_planner__trips WHERE id = ?`, [tripId])).rows.length === 0;
       } catch (e) { console.error(e); }
       if (!gone) return false;
       await db(`DELETE FROM ${table} WHERE id=?`, [id]).catch(e => console.error(e));
-      closeModal();
+      if (modalEl === dialog) closeModal();
       trips = trips.filter(t => t.id !== tripId);
       if (currentTrip?.id === tripId) goBack(); else render();
       hubAlert("This trip was deleted, so the item wasn’t added.");
@@ -1124,6 +1128,7 @@ let searchQ = "";       // in-app search (see logic.js searchableFields)
 
       if (!title) { document.getElementById("f-title").focus(); return; }
 
+      const dialog = modalEl; // close only this dialog, not one opened since
       const btn = modalEl?.querySelector(".btn-primary");
       if (btn) { btn.disabled = true; btn.textContent = "Adding…"; }
 
@@ -1140,7 +1145,7 @@ let searchQ = "";       // in-app search (see logic.js searchableFields)
           [id, tripId, date, sort, time, title, desc, cat, url, conf, ME?.id ?? "system", now]
         );
 
-        if (await addedToDeletedTrip(tripId, "app_trip_planner__itinerary_items", id)) return;
+        if (await addedToDeletedTrip(tripId, "app_trip_planner__itinerary_items", id, dialog)) return;
 
         const newItem = { id, trip_id: tripId, item_date: date, sort_order: sort,
           time, title, description: desc, category: cat, booking_url: url,
@@ -1148,12 +1153,12 @@ let searchQ = "";       // in-app search (see logic.js searchableFields)
         // Only onto the trip it was stored under, if that is still the one open.
         if (currentTrip?.id === tripId) itineraryItems = sortItinerary([...itineraryItems, newItem]);
 
-        closeModal();
+        if (modalEl === dialog) closeModal();
         refreshTab();
       } catch (e) {
         if (btn) { btn.disabled = false; btn.textContent = "Add item"; }
         console.error(e);
-        hubAlert("Couldn’t add the item — try again.");
+        hubAlert(failureLine(e, { action: "add the item", thing: "item" }));
       }
     };
 
@@ -1211,6 +1216,7 @@ let searchQ = "";       // in-app search (see logic.js searchableFields)
 
       if (!title) { document.getElementById("f-title").focus(); return; }
 
+      const dialog = modalEl; // close only this dialog, not one opened since
       const btn = modalEl?.querySelector(".btn-primary");
       if (btn) { btn.disabled = true; btn.textContent = "Saving…"; }
 
@@ -1220,15 +1226,20 @@ let searchQ = "";       // in-app search (see logic.js searchableFields)
           `UPDATE app_trip_planner__itinerary_items SET title=?, category=?, time=?, description=?, confirmation_code=?, booking_url=? WHERE id=?`,
           [title, cat, time, desc, conf, url, itemId]
         );
-        // Nothing changed: someone else removed the item. Say so and show
-        // what is stored rather than drawing the edit as saved.
+        // Nothing changed: the item was removed, or the row policy refused the
+        // write. Show what is stored rather than drawing the edit as saved.
         if (DB && changed === 0) {
-          closeModal();
-          hubAlert("This item can no longer be changed.");
+          let found = null; // null: the re-read failed, so say neither
           try {
             const { rows } = await db(`SELECT * FROM app_trip_planner__itinerary_items WHERE trip_id = ? ORDER BY (item_date IS NULL), item_date, sort_order, created_at`, [tripId]);
+            found = rows.some(i => i.id === itemId);
             if (currentTrip?.id === tripId) { itineraryItems = rows; refreshTab(); }
           } catch (e) { console.error(e); }
+          // Close only once the outcome is known: a failed re-read keeps the
+          // edits as typed for the retry.
+          if (found === null) { if (btn) { btn.disabled = false; btn.textContent = "Save"; } }
+          else if (modalEl === dialog) closeModal();
+          hubAlert(failureLine(null, { action: "save the item", thing: "item", found }));
           return;
         }
 
@@ -1236,12 +1247,12 @@ let searchQ = "";       // in-app search (see logic.js searchableFields)
         if (idx !== -1) {
           itineraryItems[idx] = { ...itineraryItems[idx], title, category: cat, time, description: desc, confirmation_code: conf, booking_url: url };
         }
-        closeModal();
+        if (modalEl === dialog) closeModal();
         refreshTab();
       } catch (e) {
         if (btn) { btn.disabled = false; btn.textContent = "Save"; }
         console.error(e);
-        hubAlert("Couldn’t save the item — try again.");
+        hubAlert(failureLine(e, { action: "save the item", thing: "item" }));
       }
     };
 
@@ -1252,7 +1263,7 @@ let searchQ = "";       // in-app search (see logic.js searchableFields)
         await db(`DELETE FROM app_trip_planner__itinerary_items WHERE id=?`, [itemId]);
       } catch (e) {
         console.error(e);
-        hubAlert("Couldn’t remove the item — try again.");
+        hubAlert(failureLine(e, { action: "remove the item", thing: "item" }));
         return;
       }
       itineraryItems = itineraryItems.filter(i => i.id !== itemId);
@@ -1288,6 +1299,7 @@ let searchQ = "";       // in-app search (see logic.js searchableFields)
 
       if (!label) { document.getElementById("f-label").focus(); return; }
 
+      const dialog = modalEl; // close only this dialog, not one opened since
       const btn = modalEl?.querySelector(".btn-primary");
       if (btn) { btn.disabled = true; btn.textContent = "Adding…"; }
 
@@ -1311,13 +1323,13 @@ let searchQ = "";       // in-app search (see logic.js searchableFields)
           );
         }
 
-        if (await addedToDeletedTrip(tripId, table, id)) return;
+        if (await addedToDeletedTrip(tripId, table, id, dialog)) return;
 
         // Only onto the trip it was stored under, if that is still the one open.
         if (currentTrip?.id === tripId) packingItems = [...packingItems,
           { id, trip_id: tripId, member_id: memberId, label, checked: 0, checked_by: null, checked_at: null, created_at: now, shared: !memberId }
         ];
-        closeModal();
+        if (modalEl === dialog) closeModal();
         refreshTab();
 
         if (toGrocery) {
@@ -1332,7 +1344,7 @@ let searchQ = "";       // in-app search (see logic.js searchableFields)
       } catch (e) {
         if (btn) { btn.disabled = false; btn.textContent = "Add"; }
         console.error(e);
-        hubAlert("Couldn’t add the item — try again.");
+        hubAlert(failureLine(e, { action: "add the item", thing: "item" }));
       }
     };
 
@@ -1350,14 +1362,22 @@ let searchQ = "";       // in-app search (see logic.js searchableFields)
           `UPDATE ${table} SET checked=?, checked_by=?, checked_at=? WHERE id=?`,
           [newChecked, newChecked ? (ME?.id ?? null) : null, newChecked ? now : null, itemId]
         );
-        // Nothing changed: the item was removed, or is not this member's to tick.
+        // Nothing changed: the item was removed, or the row policy refused the write.
         if (DB && changed === 0) {
-          hubAlert("This item can no longer be changed.");
+          let found = null; // null: the re-read failed, so say neither
+          try {
+            found = (await db(`SELECT id FROM ${table} WHERE id = ?`, [itemId])).rows.length > 0;
+          } catch (e) { console.error(e); }
+          if (found === false) {
+            packingItems = packingItems.filter(i => i.id !== itemId);
+            refreshTab();
+          }
+          hubAlert(failureLine(null, { action: "update the item", thing: "item", found }));
           return;
         }
       } catch (e) {
         console.error(e);
-        hubAlert("Couldn’t update the item — try again.");
+        hubAlert(failureLine(e, { action: "update the item", thing: "item" }));
         return;
       }
 
@@ -1380,7 +1400,7 @@ let searchQ = "";       // in-app search (see logic.js searchableFields)
         await db(`DELETE FROM ${table} WHERE id=?`, [itemId]);
       } catch (e) {
         console.error(e);
-        hubAlert("Couldn’t remove the item — try again.");
+        hubAlert(failureLine(e, { action: "remove the item", thing: "item" }));
         return;
       }
       packingItems = packingItems.filter(i => i.id !== itemId);
@@ -1406,7 +1426,7 @@ let searchQ = "";       // in-app search (see logic.js searchableFields)
         // The checkbox was already flipped by the tap; redraw it from what was saved.
         refreshTab();
         console.error(e);
-        hubAlert("Couldn’t update who is coming — try again.");
+        hubAlert(failureLine(e, { action: "update who is coming", thing: "trip" }));
       }
     };
 
@@ -1432,12 +1452,13 @@ let searchQ = "";       // in-app search (see logic.js searchableFields)
             sharedWith: ["everyone"],
           }),
         });
-        if (!res.ok) throw new Error(`Upload failed (${res.status})`);
+        if (!res.ok) throw Object.assign(new Error(`Upload failed (${res.status})`), { status: res.status });
         const doc = await res.json();
         tripDocs = [...tripDocs, doc];
         refreshTab();
       } catch (e) {
-        hubAlert(`Upload failed: ${e.message}`);
+        console.error(e);
+        hubAlert(e?.status === 413 ? "That file is too large to upload." : failureLine(e, { action: "upload the document", thing: "document" }));
       }
     };
 
@@ -1505,7 +1526,7 @@ let searchQ = "";       // in-app search (see logic.js searchableFields)
         gone = DB && changed === 0;
       } catch (e) {
         console.error(e);
-        await hubAlert("Couldn’t delete the trip — try again.");
+        await hubAlert(failureLine(e, { action: "delete the trip", thing: "trip" }));
         return;
       }
 
